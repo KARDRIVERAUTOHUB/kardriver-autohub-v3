@@ -1,0 +1,28 @@
+# Backup files
+*_backup*
+*_BACKUP*
+*_BEFORE_*
+index_before_*
+*.zip
+
+# Temporary test files
+check-*.js
+test_*
+semak-kod.js
+kardriver-check.js
+add_module*.py
+upgrade_certificate.py
+
+# Secrets and credentials
+.env
+.env.*
+*service-account*.json
+*serviceAccount*.json
+firebase-adminsdk*.json
+
+# Dependencies and system files
+node_modules/
+.DS_Store
+index_NAV_V2_STABLE.html
+index_backup*.html
+assets/images/assets/

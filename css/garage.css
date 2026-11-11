@@ -1,0 +1,297 @@
+.garage-hero{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(3,12,25,.82),rgba(3,20,38,.42)),
+    url("../assets/images/garage-hero.webp") center/cover no-repeat;
+  border:1px solid #22d3ee;
+  border-radius:16px;
+  padding:24px 20px;
+  min-height:190px;
+  box-shadow:0 0 22px #087eb366;
+}
+.garage-hero h2,
+.garage-hero h1,
+.garage-hero p{
+  text-shadow:0 2px 8px #00101f;
+}
+.garage-hero h2{color:#38dfff;margin-top:5px}
+.garage-form input,.garage-form select{
+  width:100%;box-sizing:border-box;
+  background:#0a1b2b;color:#eafaff;
+  border:1px solid #17658b;border-radius:9px;
+  padding:12px;margin:6px 0 12px;
+}
+.garage-car{
+  background:#0b1d2d;border:1px solid #17658b;
+  border-radius:13px;padding:15px;margin:12px 0;
+}
+.garage-car h3{color:#40dfff;margin:4px 0}
+.garage-meta{color:#9bb9cc;font-size:13px;line-height:1.8}
+.garage-delete{
+  background:#632c36;color:white;border:0;
+  border-radius:8px;padding:9px 12px;margin-top:10px;
+}
+.garage-empty{
+  text-align:center;padding:25px;color:#91aec2;
+  border:1px dashed #17658b;border-radius:12px;
+}
+
+.garage-hero-image{
+  width:100%;
+  height:210px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.garage-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.garage-hero{
+  background:linear-gradient(145deg,#071727,#103451,#071321);
+}
+
+.service-hero-image{
+  width:100%;
+  height:210px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.service-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.service-intro{
+  background:linear-gradient(145deg,#071727,#103451,#071321);
+}
+
+.dtc-hero-image{
+  width:100%;
+  height:210px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.dtc-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.dtc-intro{
+  background:linear-gradient(145deg,#071727,#103451,#071321);
+  border:1px solid #168bc2;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.quiz-hero-image{
+  width:100%;
+  height:210px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.quiz-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.quiz-intro{
+  background:linear-gradient(145deg,#071727,#103451,#071321);
+  border:1px solid #168bc2;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.profile-hero-image{
+  width:100%;
+  height:210px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.profile-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.profile-intro{
+  background:linear-gradient(145deg,#071727,#103451,#071321);
+  border:1px solid #168bc2;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.courses-hero-image{
+  width:100%;
+  height:210px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.courses-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.courses-intro{
+  background:linear-gradient(145deg,#071727,#103451,#071321);
+  border:1px solid #168bc2;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.profile-hero-image{
+  height:auto;
+  aspect-ratio:16 / 9;
+  background:#050d18;
+}
+.profile-hero-image img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+
+/* KARDRIVER AUTOHUB V3 AUTH */
+
+#authPage{
+  min-height:75vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:25px 12px;
+}
+
+.auth-card{
+  width:100%;
+  max-width:430px;
+  padding:26px 20px;
+  background:linear-gradient(145deg,#071727,#102b45,#050b16);
+  border:1px solid #22d3ee;
+  border-radius:20px;
+  box-shadow:0 0 28px #22d3ee44;
+  text-align:center;
+}
+
+.auth-brand{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:4px;
+  color:#22d3ee;
+  text-shadow:0 0 15px #22d3ee;
+}
+
+.auth-sub{
+  color:#fff;
+  letter-spacing:5px;
+  font-size:12px;
+  margin-bottom:25px;
+}
+
+.auth-card h2{
+  color:#22d3ee;
+  letter-spacing:2px;
+}
+
+.auth-card label{
+  display:block;
+  text-align:left;
+  margin:14px 0 6px;
+  color:#b9eaff;
+}
+
+.auth-card input{
+  width:100%;
+  box-sizing:border-box;
+  padding:14px;
+  border:1px solid #168bc2;
+  border-radius:10px;
+  background:#06111f;
+  color:#fff;
+  font-size:15px;
+}
+
+.auth-card .action{
+  width:100%;
+  margin-top:20px;
+}
+
+.auth-switch{
+  margin-top:20px;
+  color:#d6eaff;
+}
+
+.auth-switch button{
+  background:none;
+  border:0;
+  color:#22d3ee;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.auth-note{
+  margin-top:25px;
+  color:#6d9db5;
+  font-size:10px;
+  letter-spacing:2px;
+}
+
+
+/* V3 AUTH GATE */
+body.auth-locked header,
+body.auth-locked .smart-nav,
+body.auth-locked footer,
+body.auth-locked #moreMenu{
+  display:none !important;
+}
+
+body.auth-locked main > section:not(#authPage){
+  display:none !important;
+}
+
+body.auth-locked #authPage{
+  display:flex !important;
+}
+
+/* V3 GLOBAL HIDDEN FIX */
+.hidden {
+  display: none !important;
+}
+
+body.auth-locked #authPage {
+  display: flex !important;
+}
+

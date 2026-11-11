@@ -1,0 +1,47 @@
+:root {
+  --tron-cyan: #22d3ee;
+  --tron-blue: #087da5;
+  --tron-bg: #030914;
+  --tron-panel: #0a1b2d;
+  --tron-text: #e8f7ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: radial-gradient(ellipse at 50% 0%, #102b45 0%, #030914 65%);
+  color: var(--tron-text);
+}
+
+header {
+  background: rgba(3, 12, 25, .96);
+  border-bottom: 1px solid var(--tron-cyan);
+  box-shadow: 0 0 18px #087da566;
+}
+
+.logo, h2, h3 {
+  color: var(--tron-cyan);
+  text-shadow: 0 0 10px #22d3ee55;
+}
+
+.hero {
+  border: 1px solid var(--tron-cyan);
+  box-shadow: 0 0 18px #087da566;
+}
+
+.card, .stat {
+  background: var(--tron-panel);
+  border: 1px solid #164c70;
+  border-radius: 12px;
+}
+
+button, .action {
+  cursor: pointer;
+}
+
+button:focus, input:focus {
+  outline: 2px solid var(--tron-cyan);
+  outline-offset: 2px;
+}

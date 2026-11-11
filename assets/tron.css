@@ -1,0 +1,106 @@
+/* KARDRIVER OBD2 ACADEMY V0.3 - TRON THEME */
+
+:root {
+  --tron-cyan: #22d3ee;
+  --tron-blue: #087da5;
+  --tron-bg: #030914;
+  --tron-panel: #0a1b2d;
+  --tron-text: #e8f7ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, #102b45 0%, #030914 65%);
+  color: var(--tron-text);
+}
+
+header {
+  background: rgba(3, 12, 25, .96);
+  border-bottom: 1px solid var(--tron-cyan);
+  box-shadow: 0 0 18px #087da566;
+}
+
+.logo, h2, h3 {
+  color: var(--tron-cyan);
+  text-shadow: 0 0 10px #22d3ee55;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(3,9,20,.25), rgba(3,20,38,.35)),
+    url("images/automotive.jpg") center/cover no-repeat;
+  border: 1px solid var(--tron-cyan);
+  box-shadow: 0 0 22px #087da566;
+}
+
+.card, .stat {
+  background: linear-gradient(145deg, #10243a, #071321);
+  border: 1px solid #087da5;
+  box-shadow: 0 0 12px #087da533;
+  border-radius: 14px;
+}
+
+button, .action {
+  background: linear-gradient(90deg, #07324c, #104c70);
+  color: var(--tron-cyan);
+  border: 1px solid var(--tron-cyan);
+  border-radius: 10px;
+  box-shadow: 0 0 10px #22d3ee33;
+}
+
+button:active, .action:active {
+  box-shadow: 0 0 18px #22d3ee99;
+  transform: scale(.98);
+}
+
+input {
+  background: #071421;
+  color: white;
+  border: 1px solid #087da5;
+}
+
+input:focus {
+  outline: 1px solid var(--tron-cyan);
+  box-shadow: 0 0 12px #22d3ee66;
+}
+
+nav {
+  background: rgba(3, 12, 25, .97);
+  border-top: 1px solid #087da5;
+  box-shadow: 0 0 16px #087da544;
+}
+
+.tag {
+  color: var(--tron-cyan);
+  border-color: #087da5;
+}
+
+.progress {
+  background: #102b45;
+}
+
+.progress span {
+  background: linear-gradient(90deg, #087da5, #22d3ee);
+  box-shadow: 0 0 10px #22d3ee;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .hero {
+    background-position: center;
+    padding: 22px 16px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+}

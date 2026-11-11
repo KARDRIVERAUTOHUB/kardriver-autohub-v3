@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050b16">
+<title>KARDRIVER OBD2 ACADEMY</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050b16;color:#e8f7ff;font-family:Arial,sans-serif;padding-bottom:85px}
+header{padding:17px 18px;background:#091727;border-bottom:1px solid #087da5;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:22px;font-weight:800;color:#22d3ee;letter-spacing:1px}
+.sub{font-size:10px;color:#9cc8dd;letter-spacing:3px}
+.lang{background:#102c40;border:1px solid #22d3ee;color:#22d3ee;padding:9px;border-radius:7px}
+main{max-width:800px;margin:auto;padding:16px}
+h1{font-size:25px;margin:8px 0;color:#fff}
+h2{font-size:18px;color:#22d3ee}
+h3{font-size:15px;color:#22d3ee}
+p{font-size:14px;color:#b3cddd;line-height:1.55}
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding:35px 20px;
+  min-height:260px;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  background:
+    linear-gradient(180deg,rgba(2,10,24,.42),rgba(2,10,24,.95)),
+    url("assets/images/home-hero.webp") center/cover no-repeat;
+  box-shadow:0 0 22px rgba(34,211,238,.25);
+}
+.hero h1{
+  color:#fff;
+  text-shadow:0 0 14px rgba(34,211,238,.75);
+}
+.hero p{
+  color:#d7eaf5;
+  line-height:1.6;
+  text-shadow:0 2px 5px #000;
+}
+.hero .action{
+  background:rgba(3,24,43,.9);
+  backdrop-filter:blur(6px);
+}
+.eyebrow{font-size:11px;letter-spacing:2px;color:#22d3ee}
+.card{background:#0c1d30;border:1px solid #164c70;border-radius:12px;padding:16px;margin:13px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#0c1d30;border:1px solid #164c70;border-radius:10px;padding:13px}
+.stat strong{display:block;color:#22d3ee;font-size:23px;margin:6px 0}
+.muted{color:#8eafc5;font-size:12px}
+button{cursor:pointer;font-size:14px}
+.action{background:#082d47;color:#22d3ee;border:1px solid #22d3ee;padding:12px;border-radius:8px;width:100%;font-weight:bold;margin-top:8px}
+.action:active,.navbtn:active{background:#155477}
+input{width:100%;padding:13px;border:1px solid #16749a;background:#071421;color:white;border-radius:8px;margin:8px 0;font-size:15px}
+.item{background:#0b1b2b;border:1px solid #16456b;border-radius:9px;padding:13px;margin:9px 0}
+.item strong{color:#fff}
+.tag{display:inline-block;color:#22d3ee;border:1px solid #146080;padding:4px 8px;border-radius:20px;font-size:11px}
+.notice{border-left:3px solid #e9b949;padding:10px;background:#242315;color:#f5dda0;font-size:12px;line-height:1.5;margin:12px 0}
+.progress{height:8px;background:#19364b;border-radius:20px;overflow:hidden}
+.progress span{display:block;height:100%;background:#22d3ee;width:0}
+nav{position:fixed;bottom:0;left:0;right:0;background:#091727;border-top:1px solid #164c70;display:flex;justify-content:space-around;padding:9px 3px calc(9px + env(safe-area-inset-bottom));z-index:5}
+.navbtn{border:0;background:transparent;color:#8eafc5;font-size:10px;padding:5px 2px;flex:1}
+.navbtn b{display:block;font-size:19px;margin-bottom:4px}
+.navbtn.active{color:#22d3ee}
+footer{text-align:center;color:#63839a;padding:22px;font-size:11px}
+.hidden{display:none}
+
+.more-menu{
+ position:fixed;bottom:82px;left:12px;right:12px;
+ z-index:20;background:rgba(4,18,34,.98);
+ border:1px solid #22d3ee;border-radius:18px;
+ padding:18px;box-shadow:0 0 24px #22d3ee55;
+}
+.more-menu-title{
+ color:#22d3ee;font-weight:bold;margin-bottom:14px;
+ letter-spacing:2px;text-align:center;
+}
+.more-menu-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+.more-menu-grid button{
+ min-height:76px;border:1px solid #16749a;border-radius:12px;
+ background:#0b2439;color:#d8f5ff;font-size:13px;
+}
+.more-menu-grid button b{
+ display:block;font-size:24px;color:#22d3ee;margin-bottom:5px;
+}
+nav.smart-nav{
+ position:fixed;bottom:0;left:0;right:0;z-index:15;
+ display:flex;justify-content:space-around;gap:5px;
+ padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+ background:rgba(3,12,25,.98);border-top:1px solid #087da5;
+ box-shadow:0 0 18px #087da544;
+}
+nav.smart-nav .navbtn{
+ flex:1;min-width:0;min-height:62px;border:1px solid transparent;
+ border-radius:13px;background:transparent;color:#8eafc5;
+ font-size:12px;padding:7px 2px;
+}
+nav.smart-nav .navbtn b{
+ display:block;font-size:23px;margin-bottom:4px;
+}
+nav.smart-nav .navbtn.active{
+ color:#22d3ee;background:#102b45;border-color:#16749a;
+}
+nav.smart-nav .more-trigger:focus{
+ color:#22d3ee;
+}
+body{padding-bottom:90px;}
+
+
+.home-hero-image{
+  width:100%;
+  height:220px;
+  overflow:hidden;
+  border:1px solid #22d3ee;
+  border-radius:18px;
+  box-shadow:0 0 22px #22d3ee44;
+  margin-bottom:14px;
+}
+.home-hero-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.home-intro{
+  background:linear-gradient(145deg,#102b45,#07111f);
+}
+
+</style>
+  <link rel="stylesheet" href="assets/tron.css">
+<link rel="stylesheet" href="css/garage.css">
+</head>
+<body>
+<header>
+ <div><div class="logo">KARDRIVER</div><div class="sub">AUTOHUB</div></div>
+ <button class="lang" onclick="toggleLang()">BM / EN</button>
+</header>
+
+<main>
+<section id="authPage">
+ <div class="auth-card">
+  <div class="auth-brand">KARDRIVER</div>
+  <div class="auth-sub">AUTOHUB V3</div>
+  <h2>USER LOGIN</h2>
+  <p>Welcome back. Access your automotive dashboard.</p>
+
+  <div id="loginPanel">
+   <form onsubmit="handleLogin(event)">
+    <label>Email Address</label>
+    <input id="loginEmail" type="email" placeholder="Enter your email" required>
+    <label>Password</label>
+    <input id="loginPassword" type="password" placeholder="Enter password" required minlength="6">
+    <button class="action" type="submit">LOGIN</button>
+   </form>
+   <p class="auth-switch">New user? <button type="button" onclick="showRegister()">REGISTER NOW</button></p>
+  </div>
+
+  <div id="registerPanel" class="hidden" style="display:none;">
+   <form onsubmit="handleRegister(event)">
+    <label>Full Name</label>
+    <input id="registerName" type="text" placeholder="Your name" required>
+    <label>Email Address</label>
+    <input id="registerEmail" type="email" placeholder="Your email" required>
+    <label>Password</label>
+    <input id="registerPassword" type="password" placeholder="Minimum 6 characters" required minlength="6">
+    <button class="action" type="submit">CREATE ACCOUNT</button>
+   </form>
+   <p class="auth-switch">Already registered? <button type="button" onclick="showLogin()">LOGIN</button></p>
+  </div>
+  <p class="auth-note">SECURE USER ACCESS · KARDRIVER AUTOHUB</p>
+ </div>
+</section>
+
+<section id="homePage">
+ <div class="home-hero-image">
+  <img src="assets/images/home-hero.webp" alt="KARDRIVER futuristic automotive workshop">
+ </div>
+ <div class="hero home-intro">
+  <div class="eyebrow">AUTOMOTIVE DIAGNOSTIC LEARNING</div>
+  <h1>Learn. Diagnose. Repair.</h1>
+  <p>Belajar menggunakan scanner OBD2 daripada asas hingga mahir. Learn automotive diagnostics step by step.</p>
+  <button class="action" onclick="go('courses')">MULA BELAJAR / START LEARNING</button>
+ </div>
+ <h2>Dashboard Pelajar / Student Dashboard</h2>
+ <div class="grid">
+  <div class="stat"><span class="muted">Modul / Modules</span><strong>04</strong><span class="muted">Kursus tersedia</span></div>
+  <div class="stat"><span class="muted">Kod DTC / Codes</span><strong>15</strong><span class="muted">Kod contoh</span></div>
+  <div class="stat"><span class="muted">Kuiz / Quiz</span><strong id="quizStat">0</strong><span class="muted">Jawapan betul</span></div>
+  <div class="stat"><span class="muted">Kemajuan / Progress</span><strong id="progressStat">0%</strong><span class="muted">Pembelajaran</span></div>
+ </div>
+ <div id="vehicleDashboard" class="card"></div>
+ <div class="card">
+  <h3>Teruskan Pembelajaran / Continue Learning</h3>
+  <div class="progress"><span id="progressBar"></span></div>
+  <p id="progressText">Anda belum menamatkan modul.</p>
+  <button class="action" onclick="go('courses')">LIHAT KURSUS / VIEW COURSES</button>
+ </div>
+ <div class="card">
+  <h3>Carian Pantas / Quick DTC Search</h3>
+  <input id="quickSearch" placeholder="Contoh: P0328" oninput="quickFind()">
+  <div id="quickResult" class="muted">Masukkan kod kerosakan untuk mencari.</div>
+ </div>
+</section>
+
+
+<section id="garagePage" class="hidden">
+ <div class="garage-hero-image">
+  <img src="assets/images/garage-hero.webp" alt="KARDRIVER AutoHub Garage">
+ </div>
+ <div class="garage-hero">
+  <div class="eyebrow">KARDRIVER AUTOHUB</div>
+  <h2>MY GARAGE</h2>
+  <p>Urus kereta anda, rekod mileage dan pantau penjagaan kenderaan dalam satu tempat.</p>
+  <h1><span id="garageVehicleCount">0</span> KERETA</h1>
+ </div>
+
+ <div class="card">
+  <h2>DAFTAR KERETA</h2>
+  <form id="garageForm" class="garage-form" onsubmit="event.preventDefault();addGarageVehicle();">
+   <label>Jenama kereta</label>
+   <input id="garageBrand" placeholder="Contoh: Proton" required>
+
+   <label>Model kereta</label>
+   <input id="garageModel" placeholder="Contoh: Saga Premium S" required>
+
+   <label>Tahun keluaran</label>
+   <input id="garageYear" type="number" min="1950" max="2035" placeholder="Contoh: 2022" required>
+
+   <label>Nombor pendaftaran</label>
+   <input id="garageRegistration" placeholder="Contoh: SAB 1234">
+
+   <label>Mileage semasa (KM)</label>
+   <input id="garageMileage" type="number" min="0" placeholder="Contoh: 45000" required>
+
+   <label>Tarikh tamat Road Tax</label>
+   <input id="garageRoadtax" type="date">
+
+   <label>Tarikh tamat Insurans</label>
+   <input id="garageInsurance" type="date">
+
+   <button class="action" type="submit">+ SIMPAN KERETA</button>
+  </form>
+ </div>
+
+ <div class="card">
+  <h2>KERETA SAYA</h2>
+  <div id="garageVehicleList">
+   <div class="garage-empty">Memuatkan rekod kereta...</div>
+  </div>
+ </div>
+</section>
+<section id="servicePage" class="hidden">
+ <div class="service-hero-image">
+  <img src="assets/images/service-hero.webp" alt="KARDRIVER Service Reminder">
+ </div>
+ <div class="garage-hero service-intro">
+  <div class="eyebrow">KARDRIVER AUTOHUB</div>
+  <h2>SERVICE REMINDER</h2>
+  <p>Rekod penyelenggaraan dan pantau jadual servis kenderaan anda.</p>
+ </div>
+
+ <div class="card">
+  <h2>REKOD SERVIS BARU</h2>
+  <form id="serviceForm" class="garage-form" onsubmit="event.preventDefault();addServiceRecord();">
+   <label>Pilih kereta</label>
+   <select id="serviceVehicle" required>
+    <option value="">Pilih kereta dari My Garage</option>
+   </select>
+
+   <label>Jenis servis</label>
+   <select id="serviceType" required>
+    <option value="Minyak enjin">Tukar minyak enjin</option>
+    <option value="Oil filter">Tukar oil filter</option>
+    <option value="Air filter">Tukar air filter</option>
+    <option value="Spark plug">Tukar spark plug</option>
+    <option value="Servis penuh">Servis penuh</option>
+    <option value="Lain-lain">Lain-lain</option>
+   </select>
+
+   <label>Tarikh servis</label>
+   <input id="serviceDate" type="date" required>
+
+   <label>Mileage ketika servis (KM)</label>
+   <input id="serviceMileage" type="number" min="0" placeholder="Contoh: 50000" required>
+
+   <label>Kos servis (RM)</label>
+   <input id="serviceCost" type="number" min="0" step="0.01" placeholder="Contoh: 180.00">
+
+   <label>Servis seterusnya pada mileage (KM)</label>
+   <input id="serviceNextMileage" type="number" min="0" placeholder="Contoh: 60000">
+
+   <label>Catatan</label>
+   <input id="serviceNotes" placeholder="Contoh: Minyak enjin 5W-30">
+
+   <button class="action" type="submit">+ SIMPAN REKOD SERVIS</button>
+  </form>
+ </div>
+
+ <div class="card">
+  <h2>SEJARAH SERVIS</h2>
+  <div id="serviceRecordList">Belum ada rekod servis.</div>
+ </div>
+</section>
+
+<section id="coursesPage" class="hidden">
+ <div class="courses-hero-image">
+  <img src="assets/images/academy-hero.webp" alt="KARDRIVER OBD2 Courses">
+ </div>
+ <div class="courses-intro">
+  <h1>KURSUS OBD2 / OBD2 COURSES</h1>
+  <p>Pilih modul mengikut tahap pembelajaran anda.</p>
+ </div>
+ <div id="courseList"></div>
+ <div id="lessonBox" class="card hidden"></div>
+</section>
+
+<section id="dtcPage" class="hidden">
+ <div class="dtc-hero-image">
+  <img src="assets/images/dtc-hero.webp" alt="KARDRIVER DTC Database">
+ </div>
+ <div class="dtc-intro">
+  <h1>DTC DATABASE</h1>
+  <p>Pangkalan data kod kerosakan contoh OBD-II generik.</p>
+ </div>
+ <input id="dtcSearch" placeholder="Cari kod atau nama kerosakan..." oninput="renderDTC()">
+ <div id="dtcList"></div>
+ <div id="dtcDetail" class="card hidden"></div>
+ <div class="notice">Peringatan: Kod DTC bukan bukti muktamad bahawa sesuatu komponen rosak. Sahkan dengan pemeriksaan, wiring diagram dan manual servis kenderaan.</div>
+</section>
+
+<section id="quizPage" class="hidden">
+ <div class="quiz-hero-image">
+  <img src="assets/images/analytics-hero.webp" alt="KARDRIVER OBD2 Academy Quiz">
+ </div>
+ <div class="quiz-intro">
+  <h1>LATIHAN & KUIZ</h1>
+  <p>Uji pengetahuan dan kemahiran diagnostik OBD2 anda.</p>
+ </div>
+ <div class="card">
+  <span class="tag" id="quizNumber">SOALAN 1</span>
+  <h3 id="question">Apakah fungsi scanner OBD2?</h3>
+  <div id="answers"></div>
+  <p id="quizFeedback"></p>
+  <button class="action" onclick="nextQuestion()">SOALAN SETERUSNYA / NEXT</button>
+ </div>
+ <div class="card"><p>Skor betul / Correct answers: <strong id="score">0</strong></p></div>
+</section>
+
+<section id="profilePage" class="hidden">
+ <div class="profile-hero-image">
+  <img src="assets/images/profile-hero.webp" alt="KARDRIVER Profile">
+ </div>
+ <div class="profile-intro">
+  <h1>PROFILE / USER</h1>
+  <p>Maklumat keahlian dan kemajuan pembelajaran anda.</p>
+ </div>
+ <div class="card">
+  <h2>MEMBER / USER</h2>
+  <p id="profileUserName">Memuatkan nama pengguna...</p>
+  <p>Email: <strong id="profileUserEmail">-</strong></p>
+  <p>Tarikh daftar: <strong id="profileCreatedAt">-</strong></p>
+  <span class="tag">FIREBASE ACCOUNT</span>
+  <p>Status keahlian / Membership: <strong>FREE</strong></p>
+  <div style="margin-top:15px;">
+   <label for="profileNewName">TUKAR NAMA PENGGUNA</label>
+   <input id="profileNewName" type="text" placeholder="Masukkan nama baharu">
+   <button class="action" onclick="updateProfileName()">UPDATE NAME</button>
+   <button class="action" onclick="resetProfilePassword()" style="margin-top:10px;">RESET PASSWORD VIA EMAIL</button>
+  </div>
+ </div>
+ <div class="card">
+  <h3>PAKEJ KEAHLIAN / MEMBERSHIP PLANS</h3>
+  <p><strong>FREE — RM0</strong><br>1 kenderaan · Akses asas.</p>
+  <p><strong>PRO — RM29.99 / bulan · RM299 / tahun</strong><br>Sehingga 5 kenderaan.</p>
+  <p><strong>MASTERCLASS — RM89.99 / bulan · RM899 / tahun</strong><br>Sehingga 20 kenderaan.</p>
+  <div class="notice">Harga dan pakej dipaparkan sebagai maklumat. Pembayaran dan pengaktifan langganan sebenar belum diaktifkan.</div>
+ </div>
+ <div class="card" id="roleManagementCard">
+  <h3>ROLE MANAGEMENT</h3>
+  <p>Peranan semasa: <strong id="profileActiveRole">OWNER</strong></p>
+  <div id="roleSwitcher" style="display:grid;gap:10px;margin:15px 0;"></div>
+  <p>Peranan tambahan memerlukan kelulusan Admin.</p>
+  <label for="requestedRole">MOHON PERANAN TAMBAHAN</label>
+  <select id="requestedRole">
+   <option value="">-- Pilih peranan --</option>
+   <option value="DRIVER">DRIVER</option>
+   <option value="MECHANIC">MECHANIC</option>
+   <option value="WORKSHOP">WORKSHOP</option>
+   <option value="FLEET">FLEET</option>
+  </select>
+  <button type="button" class="action" onclick="window.submitRoleRequest()">HANTAR PERMOHONAN</button>
+  <p id="roleRequestStatus">Status permohonan: Belum dihantar.</p>
+  <div class="notice">Permohonan akan berstatus PENDING sehingga disemak oleh Admin.</div>
+ </div>
+ <div class="card">
+  <h3>Data Pembelajaran / Learning Data</h3>
+  <p id="profileProgress">Kemajuan: 0%</p>
+  <button class="action" onclick="resetProgress()">RESET DATA DEMO</button>
+  <button class="action" onclick="logoutUser()" style="background:#8b1e2d;border:1px solid #ff5268;margin-top:15px;">LOGOUT / KELUAR AKAUN</button>
+ </div>
+</section>
+</main>
+
+<div id="moreMenu" class="more-menu hidden">
+ <div class="more-menu-title">KARDRIVER MENU</div>
+ <div class="more-menu-grid">
+  <button onclick="go('courses');closeMore()"><b>▤</b>COURSES</button>
+  <button onclick="go('dtc');closeMore()"><b>⌕</b>DTC DATABASE</button>
+  <button onclick="go('quiz');closeMore()"><b>✓</b>QUIZ</button>
+  <button onclick="go('profile');closeMore()"><b>♙</b>PROFILE</button>
+ </div>
+</div>
+<nav class="smart-nav">
+ <button class="navbtn active" data-page="home" onclick="go('home')"><b>⌂</b>HOME</button>
+ <button class="navbtn" data-page="garage" onclick="go('garage')"><b>🚗</b>GARAGE</button>
+ <button class="navbtn" data-page="service" onclick="go('service')"><b>🔧</b>SERVICE</button>
+ <button class="navbtn more-trigger" onclick="toggleMore()"><b>☷</b>MORE</button>
+</nav>
+
+<footer>KARDRIVER OBD2 ACADEMY · PROTOTYPE V0.2<br>Learn • Diagnose • Repair</footer>
+
+<script>
+const dtcs=[
+{c:"P0101",n:"Mass Air Flow Sensor Range / Performance",m:"Julat atau prestasi bacaan sensor aliran udara tidak normal.",s:"Enjin kurang kuasa, idle tidak stabil atau penggunaan petrol meningkat.",p:"Sensor MAF kotor/rosak, kebocoran udara atau masalah wiring.",d:"Periksa saluran udara, connector, wiring dan bacaan live data MAF.",r:"Bersihkan atau ganti sensor hanya selepas ujian mengesahkan puncanya."},
+{c:"P0113",n:"Intake Air Temperature Sensor 1 Circuit High",m:"Isyarat litar sensor suhu udara masuk terlalu tinggi.",s:"Lampu check engine dan bacaan suhu udara tidak munasabah.",p:"Sensor IAT, connector tercabut atau litar terbuka.",d:"Semak connector dan bandingkan bacaan IAT dengan suhu persekitaran.",r:"Baiki wiring atau ganti sensor jika disahkan rosak."},
+{c:"P0128",n:"Coolant Thermostat Below Regulating Temperature",m:"Suhu coolant tidak mencapai suhu operasi yang dijangka.",s:"Enjin lambat panas atau pemanas kabin kurang panas.",p:"Thermostat terbuka, coolant rendah atau sensor suhu bermasalah.",d:"Semak paras coolant dan bandingkan suhu ECT dengan suhu sebenar.",r:"Baiki kebocoran atau ganti thermostat/sensor selepas diagnosis."},
+{c:"P0171",n:"System Too Lean Bank 1",m:"Campuran udara dan bahan api terlalu kurus pada Bank 1.",s:"Idle kasar, enjin tersengguk atau kuasa berkurang.",p:"Vacuum leak, MAF kotor, tekanan bahan api rendah.",d:"Periksa kebocoran intake, fuel pressure dan fuel trim.",r:"Baiki kebocoran atau sistem bahan api berdasarkan hasil ujian."},
+{c:"P0172",n:"System Too Rich Bank 1",m:"Campuran udara dan bahan api terlalu kaya.",s:"Penggunaan petrol tinggi, bau petrol atau asap hitam.",p:"Injector bocor, tekanan bahan api tinggi atau sensor MAF/ECT.",d:"Semak fuel trim, injector, tekanan bahan api dan bacaan sensor.",r:"Baiki punca campuran kaya selepas ujian."},
+{c:"P0300",n:"Random / Multiple Cylinder Misfire",m:"Misfire berlaku secara rawak atau melibatkan beberapa silinder.",s:"Enjin bergegar, kuasa lemah dan check engine berkelip.",p:"Spark plug, ignition coil, injector, compression atau kebocoran udara.",d:"Semak misfire count, ignition, fuel dan compression.",r:"Baiki komponen yang gagal ujian. Jika lampu berkelip, elakkan memandu."},
+{c:"P0301",n:"Cylinder 1 Misfire Detected",m:"ECU mengesan misfire pada silinder nombor 1.",s:"Enjin bergegar, idle tidak stabil dan kuasa kurang.",p:"Spark plug, coil, injector atau compression silinder 1.",d:"Periksa plug dan coil, kemudian uji injector dan compression.",r:"Baiki punca yang disahkan; jangan terus menukar semua komponen."},
+{c:"P0325",n:"Knock Sensor 1 Circuit",m:"Masalah pada litar sensor ketukan nombor 1.",s:"Check engine dan kemungkinan prestasi enjin menurun.",p:"Sensor, connector atau wiring bermasalah.",d:"Periksa wiring, connector dan sensor mengikut manual model.",r:"Baiki litar atau ganti sensor jika ujian mengesahkan kerosakan."},
+{c:"P0328",n:"Knock Sensor 1 Circuit High Input",m:"Isyarat voltan litar sensor ketukan terlalu tinggi.",s:"Check engine, kuasa berkurang atau penggunaan petrol meningkat.",p:"Sensor rosak, litar terbuka, short to voltage atau connector bermasalah.",d:"Periksa connector, wiring, ground dan signal mengikut spesifikasi pengeluar.",r:"Baiki litar atau ganti sensor selepas diagnosis. Nilai voltan berbeza mengikut kenderaan."},
+{c:"P0335",n:"Crankshaft Position Sensor A Circuit",m:"Masalah pada litar sensor kedudukan crankshaft A.",s:"Enjin sukar hidup, mati tiba-tiba atau tidak boleh start.",p:"Sensor CKP, wiring, connector atau reluctor.",d:"Semak signal RPM semasa cranking dan periksa wiring/sensor.",r:"Baiki litar atau ganti sensor jika ujian mengesahkan."},
+{c:"P0340",n:"Camshaft Position Sensor A Circuit",m:"Masalah pada litar sensor kedudukan camshaft A.",s:"Sukar start, enjin tidak lancar atau kuasa berkurang.",p:"Sensor CMP, wiring, connector atau timing enjin.",d:"Semak signal sensor dan timing menggunakan prosedur servis.",r:"Baiki wiring, sensor atau timing berdasarkan diagnosis."},
+{c:"P0401",n:"Exhaust Gas Recirculation Flow Insufficient",m:"Aliran sistem EGR tidak mencukupi.",s:"Check engine, prestasi menurun atau knocking dalam keadaan tertentu.",p:"Saluran EGR tersumbat, valve atau sensor berkaitan.",d:"Periksa laluan EGR, valve dan arahan/feedback scanner.",r:"Bersihkan atau baiki sistem EGR jika disahkan."},
+{c:"P0420",n:"Catalyst System Efficiency Below Threshold",m:"Kecekapan catalytic converter di bawah ambang yang ditetapkan.",s:"Check engine dan mungkin penggunaan petrol meningkat.",p:"Catalytic converter, exhaust leak atau sensor oksigen.",d:"Periksa kebocoran ekzos dan analisis data sensor O2.",r:"Sahkan sensor serta keadaan catalytic converter sebelum mengganti."},
+{c:"P0442",n:"EVAP System Small Leak Detected",m:"Sistem EVAP mengesan kebocoran kecil.",s:"Biasanya check engine tanpa perubahan prestasi ketara.",p:"Penutup tangki, hos EVAP atau sambungan bocor.",d:"Periksa penutup tangki dan jalankan smoke test jika perlu.",r:"Baiki kebocoran yang ditemui."},
+{c:"P0455",n:"EVAP System Large Leak Detected",m:"Sistem EVAP mengesan kebocoran besar.",s:"Check engine dan kemungkinan bau petrol.",p:"Penutup tangki longgar, hos tercabut atau kebocoran EVAP.",d:"Periksa sambungan dan gunakan smoke test mengikut prosedur.",r:"Baiki kebocoran dan uji semula sistem."},
+{c:"P0500",n:"Vehicle Speed Sensor Malfunction",m:"Isyarat sensor kelajuan kenderaan tidak normal.",s:"Speedometer tidak berfungsi atau pertukaran gear terganggu.",p:"Sensor kelajuan, wiring atau sistem ABS/ECU bergantung model.",d:"Semak live data kelajuan dan litar sensor menggunakan wiring diagram.",r:"Baiki sensor atau wiring selepas punca dikenal pasti."}
+];
+
+const courses=[
+["OBD2 Asas","Pengenalan OBD2, port diagnostik dan cara menggunakan scanner."],
+["Kenali Scanner","Kenali menu, fungsi baca kod, padam kod dan freeze frame."],
+["Live Data Analysis","Belajar RPM, coolant temperature, MAF dan sensor enjin."],
+["Diagnosis Praktikal","Susun proses diagnosis berdasarkan simptom dan keputusan ujian."]
+,
+["Sensor & Actuator System","Kenali fungsi, operasi dan kaedah menguji sensor serta actuator kenderaan."],
+["Wiring & Electrical Testing","Belajar menggunakan multimeter untuk menguji voltan, rintangan, continuity, fius, relay dan pendawaian kenderaan."],
+["Engine & Transmission Diagnosis","Diagnosis sistem enjin, bahan api, penyejukan dan transmisi automatik berdasarkan simptom serta DTC."]
+,["ABS, SRS & Advanced Systems","Belajar sistem brek ABS, EBD, ESC, Traction Control dan keselamatan airbag."]
+,["Real Case Study","Latihan diagnosis berdasarkan simptom, DTC, pemeriksaan dan pengesahan pembaikan."],
+["Final Examination & Certificate","Peperiksaan akhir 30 soalan, keputusan automatik dan sijil digital KARDRIVER OBD2 ACADEMY."]];
+let currentQ=0,score=Number(localStorage.getItem("karfxScore")||0);
+let answered=false;
+const questions=[
+{q:"Apakah fungsi utama scanner OBD2?",a:["Membaca data dan kod diagnostik","Mengecas bateri","Mengisi minyak enjin"],correct:0,why:"Scanner OBD2 membaca kod dan data diagnostik daripada sistem kenderaan yang disokong."},
+{q:"Apakah maksud P0300?",a:["Suhu coolant rendah","Random / Multiple Cylinder Misfire","Masalah ABS"],correct:1,why:"P0300 merujuk kepada misfire rawak atau beberapa silinder."},
+{q:"Apakah tindakan sesuai selepas mendapat DTC?",a:["Terus tukar ECU","Padam kod sahaja","Simpan freeze frame dan jalankan pemeriksaan"],correct:2,why:"Diagnosis bermula dengan menyimpan maklumat dan menguji punca yang mungkin."}
+];
+
+
+function toggleMore(){
+ const menu=document.getElementById("moreMenu");
+ if(menu) menu.classList.toggle("hidden");
+}
+function closeMore(){
+ const menu=document.getElementById("moreMenu");
+ if(menu) menu.classList.add("hidden");
+}
+function go(page){
+ document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
+ document.getElementById(page+"Page").classList.remove("hidden");
+ document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ if(page==="garage")renderGarage();
+ if(page==="service")renderService();
+ if(page==="dtc")renderDTC();
+ if(page==="profile")updateStats();
+ if(page==="profile" && window.renderUserProfile)window.renderUserProfile();
+ if(page==="quiz")showQuestion();
+ window.scrollTo(0,0);
+}
+function toggleLang(){alert("Language mode: Bahasa Melayu / English. Kandungan pembelajaran dipaparkan dalam dua bahasa secara berperingkat.");}
+function quickFind(){
+ const q=document.getElementById("quickSearch").value.trim().toUpperCase();
+ const found=dtcs.find(x=>x.c===q);
+ document.getElementById("quickResult").innerHTML=found?`<strong style="color:#22d3ee">${found.c}</strong><br>${found.n}<br>${found.m}`:"Kod belum dijumpai dalam demo database.";
+}
+function renderDTC(){
+ const q=document.getElementById("dtcSearch").value.trim().toUpperCase();
+ const list=dtcs.filter(x=>x.c.includes(q)||x.n.toUpperCase().includes(q));
+ document.getElementById("dtcList").innerHTML=list.map(x=>`<div class="item" onclick="showDTC('${x.c}')"><strong>${x.c}</strong><p>${x.n}</p><span class="tag">LIHAT MAKLUMAT / VIEW DETAILS</span></div>`).join("")||"<p>Kod tidak dijumpai.</p>";
+}
+function showDTC(code){
+ const x=dtcs.find(a=>a.c===code);if(!x)return;
+ const box=document.getElementById("dtcDetail");box.classList.remove("hidden");
+ box.innerHTML=`<h2>${x.c}</h2><h3>${x.n}</h3><p><strong>Maksud / Meaning</strong><br>${x.m}</p><p><strong>Simptom / Symptoms</strong><br>${x.s}</p><div><strong>Punca / Possible causes</strong><ul>${x.p.split(/,\s*|\s+atau\s+/).map(c => "<li>" + c.trim() + "</li>").join("")}</ul></div><p><strong>Diagnosis</strong><br>${x.d}</p><p><strong>Penyelesaian / Repair direction</strong><br>${x.r}</p>`;
+ box.scrollIntoView({behavior:"smooth"});
+}
+function renderCourses(){
+ document.getElementById("courseList").innerHTML=courses.map((x,i)=>`<div class="item"><span class="tag">MODUL 0${i+1}</span><h3>${x[0]}</h3><p>${x[1]}</p><button class="action" onclick="openLesson(${i})">BUKA MODUL / OPEN MODULE</button></div>`).join("");
+}
+
+function openLesson(i){
+ const box=document.getElementById("lessonBox");
+ box.classList.remove("hidden");
+
+ if(i===2){
+  const topics=[
+   ["RPM Enjin","Bacaan kelajuan putaran enjin dalam unit RPM.","Enjin panas pada idle lazimnya sekitar 600–900 RPM. Nilai sebenar bergantung pada model dan keadaan enjin.","Periksa kestabilan RPM, misfire dan kebocoran udara jika bacaan tidak normal."],
+   ["Coolant Temperature (ECT)","Suhu coolant yang dibaca oleh ECU.","Selepas enjin mencapai suhu operasi, banyak kenderaan berada sekitar 80–105°C. Rujuk spesifikasi pengeluar.","Jika terlalu rendah atau tinggi, periksa coolant, thermostat, kipas dan sensor ECT."],
+   ["MAF Sensor","Mengukur jumlah udara yang masuk ke enjin.","Bacaan berubah mengikut kapasiti enjin, RPM dan beban. Tiada satu nilai universal.","Bandingkan bacaan idle dan ketika RPM dinaikkan. Periksa penapis udara, hos intake dan sensor."],
+   ["Throttle Position (TPS)","Menunjukkan kedudukan throttle.","Bacaan lazimnya meningkat secara beransur apabila pedal minyak ditekan. Jenis sistem berbeza mengikut kenderaan.","Periksa sama ada bacaan berubah lancar tanpa terputus atau melonjak."],
+   ["O2 Sensor","Membantu ECU mengawal campuran udara dan bahan api.","Jenis narrowband dan wideband mempunyai julat bacaan berbeza. Jangan gunakan satu nilai untuk semua sensor.","Semak jenis sensor, heater, pendawaian dan data sensor sebelum membuat keputusan."],
+   ["Fuel Trim (STFT / LTFT)","Pembetulan bahan api jangka pendek dan jangka panjang oleh ECU.","Nilai hampir 0% biasanya menunjukkan pembetulan kecil. Nilai positif atau negatif yang besar perlu disiasat mengikut spesifikasi model.","Semak kebocoran vakum, tekanan bahan api, injector dan bacaan MAF/O2."]
+  ];
+
+  box.innerHTML=`<h2>MODUL 3: LIVE DATA ANALYSIS</h2>
+  <p>Belajar membaca data langsung daripada ECU menggunakan scanner OBD2.</p>
+  ${topics.map((t,n)=>`<div class="notice">
+   <h3>${n+1}. ${t[0]}</h3>
+   <p><strong>Fungsi:</strong> ${t[1]}</p>
+   <p><strong>Panduan bacaan:</strong> ${t[2]}</p>
+   <p><strong>Langkah pemeriksaan:</strong> ${t[3]}</p>
+  </div>`).join("")}
+  <div class="notice"><strong>Nota keselamatan:</strong> Nilai di atas ialah panduan umum, bukan spesifikasi semua kenderaan. Bandingkan dengan manual servis dan data pengeluar. Jangan menguji kenderaan secara berbahaya ketika memandu.</div>
+  
+<div class="notice" style="border-left:4px solid #22d3ee;padding:15px;margin:15px 0">
+<h3>SIMULASI LIVE DATA SCANNER</h3>
+<p>Ubah bacaan di bawah dan tekan ANALISIS untuk belajar mengenal pasti keadaan sensor.</p>
+
+<label>RPM Engine</label>
+<input id="kl_rpm" type="number" value="800" style="width:100%;padding:10px;margin:5px 0">
+
+<label>Coolant Temperature (°C)</label>
+<input id="kl_ect" type="number" value="90" style="width:100%;padding:10px;margin:5px 0">
+
+<label>MAF (g/s)</label>
+<input id="kl_maf" type="number" value="2.5" step="0.1" style="width:100%;padding:10px;margin:5px 0">
+
+<label>O2 Sensor (Volt, contoh narrowband)</label>
+<input id="kl_o2" type="number" value="0.45" step="0.01" style="width:100%;padding:10px;margin:5px 0">
+
+<label>STFT (%)</label>
+<input id="kl_trim" type="number" value="0" step="0.1" style="width:100%;padding:10px;margin:5px 0">
+
+<button class="action" onclick="karfxLiveAnalyze()">ANALISIS BACAAN</button>
+<div id="kl_result" style="margin-top:15px;line-height:1.7">
+Keputusan analisis akan dipaparkan di sini.
+</div>
+</div>
+<button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+ }else if(i===3){
+  box.innerHTML = `<h2>MODUL 4: PRACTICAL CAR DIAGNOSIS</h2>
+  <p>Belajar mengenal pasti punca kerosakan kenderaan melalui pemeriksaan yang sistematik. Jangan terus menukar alat ganti hanya berdasarkan kod DTC.</p>
+
+  <div class="notice">
+  <h3>8 LANGKAH DIAGNOSIS KENDERAAN</h3>
+  <ol>
+  <li>Kenal pasti aduan pelanggan dan simptom kerosakan.</li>
+  <li>Periksa keadaan bateri, fius, minyak dan sambungan secara visual.</li>
+  <li>Sambungkan scanner dan imbas kod DTC.</li>
+  <li>Rekod kod kerosakan dan Freeze Frame sebelum memadam kod.</li>
+  <li>Semak Live Data dan bandingkan dengan spesifikasi kenderaan.</li>
+  <li>Uji sensor, pendawaian dan komponen berkaitan.</li>
+  <li>Tentukan punca sebenar dan lakukan pembaikan.</li>
+  <li>Uji semula kenderaan dan pastikan masalah selesai.</li>
+  </ol>
+  </div>
+
+  <div class="notice">
+  <h3>KES 1: P0300 – RANDOM MISFIRE</h3>
+  <p><strong>Simptom:</strong> Enjin bergegar, idle tidak stabil dan kuasa berkurangan.</p>
+  <p><strong>Pemeriksaan:</strong> Semak misfire counter, spark plug, ignition coil, injector dan compression.</p>
+  <p><strong>Tindakan:</strong> Uji komponen mengikut prosedur pengeluar. Jangan terus menukar semua ignition coil.</p>
+  </div>
+
+  <div class="notice">
+  <h3>KES 2: P0328 – KNOCK SENSOR HIGH INPUT</h3>
+  <p><strong>Simptom berpotensi:</strong> Lampu Check Engine menyala dan prestasi enjin mungkin terjejas.</p>
+  <p><strong>Pemeriksaan:</strong> Periksa soket, pendawaian, sambungan bumi dan litar sensor. Semak sama ada terdapat litar pintas ke voltan.</p>
+  <p><strong>Tindakan:</strong> Uji mengikut spesifikasi pengeluar sebelum menggantikan sensor.</p>
+  </div>
+
+  <div class="notice">
+  <h3>KES 3: P0420 – CATALYST SYSTEM EFFICIENCY</h3>
+  <p><strong>Simptom berpotensi:</strong> Lampu Check Engine menyala dan pelepasan ekzos mungkin meningkat.</p>
+  <p><strong>Pemeriksaan:</strong> Periksa kebocoran ekzos, data sensor oksigen, misfire dan masalah campuran bahan api.</p>
+  <p><strong>Tindakan:</strong> Sahkan kecekapan catalytic converter mengikut prosedur pengeluar. Jangan terus menukarnya hanya kerana kod P0420.</p>
+  </div>
+
+  <div class="notice">
+  <h3>PERINGATAN PENTING</h3>
+  <p>Kod DTC menunjukkan sistem atau keadaan yang dikesan ECU, bukan semestinya alat ganti yang rosak. Prosedur dan bacaan sebenar bergantung pada model serta spesifikasi kenderaan.</p>
+  <p>Utamakan keselamatan. Jangan membuat ujian ketika enjin atau kenderaan berada dalam keadaan berbahaya.</p>
+  </div>
+
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+ }else if(i===4){
+  box.innerHTML = `<h2>MODUL 5: SENSOR & ACTUATOR SYSTEM</h2>
+  <p>Kenali komponen yang menghantar maklumat kepada ECU dan komponen yang melaksanakan arahan ECU.</p>
+
+  <div class="notice">
+  <h3>BAHAGIAN A: SENSOR UTAMA</h3>
+  <h4>1. Crankshaft Position Sensor (CKP)</h4>
+  <p><strong>Fungsi:</strong> Mengesan kedudukan dan kelajuan putaran crankshaft.</p>
+  <p><strong>Jika bermasalah:</strong> Enjin mungkin susah hidup, mati tiba-tiba atau tiada bacaan RPM ketika crank.</p>
+  <p><strong>Ujian:</strong> Semak RPM ketika crank, wiring, connector dan signal mengikut spesifikasi.</p>
+
+  <h4>2. Camshaft Position Sensor (CMP)</h4>
+  <p><strong>Fungsi:</strong> Membantu ECU mengenal pasti kedudukan camshaft dan pemasaan enjin.</p>
+  <p><strong>Jika bermasalah:</strong> Enjin mungkin susah hidup atau prestasi terjejas.</p>
+  <p><strong>Ujian:</strong> Semak DTC, signal sensor dan pendawaian.</p>
+
+  <h4>3. Mass Air Flow Sensor (MAF)</h4>
+  <p><strong>Fungsi:</strong> Mengukur jumlah udara yang memasuki enjin.</p>
+  <p><strong>Jika bermasalah:</strong> Idle tidak stabil, penggunaan minyak meningkat atau kuasa berkurangan.</p>
+  <p><strong>Ujian:</strong> Bandingkan bacaan Live Data dengan spesifikasi dan periksa saluran udara.</p>
+
+  <h4>4. Manifold Absolute Pressure Sensor (MAP)</h4>
+  <p><strong>Fungsi:</strong> Mengukur tekanan dalam intake manifold.</p>
+  <p><strong>Jika bermasalah:</strong> Campuran bahan api dan prestasi enjin boleh terjejas.</p>
+  <p><strong>Ujian:</strong> Bandingkan bacaan MAP dengan tekanan atmosfera ketika enjin mati dan bacaan ketika enjin hidup, mengikut spesifikasi.</p>
+
+  <h4>5. Oxygen Sensor (O2)</h4>
+  <p><strong>Fungsi:</strong> Membantu ECU mengawal campuran udara dan bahan api.</p>
+  <p><strong>Jika bermasalah:</strong> Penggunaan minyak atau pelepasan ekzos mungkin meningkat.</p>
+  <p><strong>Ujian:</strong> Semak jenis sensor dan data signal menggunakan scanner. Wideband dan narrowband mempunyai kaedah bacaan berbeza.</p>
+
+  <h4>6. Engine Coolant Temperature Sensor (ECT)</h4>
+  <p><strong>Fungsi:</strong> Mengukur suhu coolant untuk maklumat kepada ECU.</p>
+  <p><strong>Jika bermasalah:</strong> Bacaan suhu tidak munasabah, idle atau penggunaan bahan api mungkin terjejas.</p>
+  <p><strong>Ujian:</strong> Bandingkan bacaan ketika enjin sejuk dengan suhu persekitaran dan periksa perubahan semasa enjin panas.</p>
+
+  <h4>7. Throttle Position Sensor (TPS)</h4>
+  <p><strong>Fungsi:</strong> Memberi maklumat kedudukan throttle kepada ECU.</p>
+  <p><strong>Jika bermasalah:</strong> Respons pedal mungkin tidak lancar atau enjin hilang kuasa.</p>
+  <p><strong>Ujian:</strong> Perhatikan data throttle ketika pedal ditekan secara beransur-ansur.</p>
+  </div>
+
+  <div class="notice">
+  <h3>BAHAGIAN B: ACTUATOR</h3>
+  <h4>8. Fuel Injector</h4>
+  <p><strong>Fungsi:</strong> Menyembur bahan api mengikut arahan ECU.</p>
+  <p><strong>Masalah berpotensi:</strong> Injector tersumbat, bocor atau litar elektrik bermasalah.</p>
+  <p><strong>Ujian:</strong> Semak DTC, wiring dan ujian injector mengikut prosedur pengeluar.</p>
+
+  <h4>9. Ignition Coil</h4>
+  <p><strong>Fungsi:</strong> Menghasilkan voltan tinggi untuk menghasilkan percikan api pada spark plug.</p>
+  <p><strong>Masalah berpotensi:</strong> Misfire, enjin bergegar dan kehilangan kuasa.</p>
+  <p><strong>Ujian:</strong> Semak misfire data, spark plug, coil dan litar berkaitan.</p>
+  </div>
+
+  <div class="notice">
+  <h3>KAEDAH UJIAN SENSOR</h3>
+  <ol>
+  <li>Imbas DTC dan rekod Freeze Frame.</li>
+  <li>Periksa connector, wiring dan keadaan fizikal.</li>
+  <li>Semak Live Data menggunakan scanner.</li>
+  <li>Gunakan multimeter untuk ujian voltan, rintangan atau kesinambungan mengikut spesifikasi.</li>
+  <li>Bandingkan keputusan dengan manual servis.</li>
+  <li>Sahkan punca sebelum menggantikan komponen.</li>
+  </ol>
+  <p><strong>Keselamatan:</strong> Jangan mengukur rintangan pada litar yang masih mempunyai bekalan kuasa. Gunakan prosedur pengeluar dan elakkan menguji litar airbag tanpa latihan serta peralatan yang betul.</p>
+  </div>
+
+  <div class="notice">
+  <h3>LATIHAN KENAL PASTI KOMPONEN</h3>
+  <p>Soalan: Scanner menunjukkan RPM kekal 0 ketika enjin sedang di-crank. Apakah komponen atau litar yang wajar diperiksa dahulu?</p>
+  <select id="sensorQuiz" style="width:100%;padding:10px;margin:8px 0">
+  <option value="">Pilih jawapan</option>
+  <option value="ckp">CKP dan litar berkaitan</option>
+  <option value="o2">Oxygen Sensor</option>
+  <option value="ect">Coolant Temperature Sensor</option>
+  </select>
+  <button class="action" onclick="checkSensorQuiz()">SEMAK JAWAPAN</button>
+  <p id="sensorQuizResult"></p>
+  </div>
+
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+ }else if(i===5){
+  box.innerHTML = `<h2>MODUL 6: WIRING & ELECTRICAL TESTING</h2>
+  <p>Belajar menguji sistem elektrik kenderaan menggunakan multimeter dengan prosedur yang betul.</p>
+
+  <div class="notice">
+    <h3>1. ASAS MULTIMETER</h3>
+    <p><strong>DC Voltage (V):</strong> Mengukur voltan bateri dan bekalan elektrik.</p>
+    <p><strong>Resistance (Ω):</strong> Mengukur rintangan komponen ketika litar tidak mempunyai bekalan kuasa.</p>
+    <p><strong>Continuity:</strong> Memeriksa sama ada laluan wayar bersambung atau terputus.</p>
+  </div>
+
+  <div class="notice">
+    <h3>2. KOMPONEN ELEKTRIK</h3>
+    <p><strong>Fius:</strong> Melindungi litar daripada arus berlebihan.</p>
+    <p><strong>Relay:</strong> Suis elektrik yang dikawal oleh litar lain.</p>
+    <p><strong>Ground:</strong> Laluan sambungan bumi bagi melengkapkan litar.</p>
+    <p><strong>Wiring:</strong> Wayar dan connector yang membawa bekalan serta isyarat.</p>
+  </div>
+
+  <div class="notice">
+    <h3>3. LANGKAH PEMERIKSAAN</h3>
+    <ol>
+      <li>Periksa keadaan bateri dan terminal.</li>
+      <li>Periksa fius mengikut diagram dan spesifikasi.</li>
+      <li>Periksa connector, wayar dan sambungan ground.</li>
+      <li>Ukur voltan menggunakan tetapan DC Voltage.</li>
+      <li>Uji continuity atau rintangan hanya pada litar yang telah dinyahbekalkan kuasa mengikut prosedur.</li>
+      <li>Bandingkan bacaan dengan manual servis.</li>
+    </ol>
+  </div>
+
+  <div class="notice">
+    <h3>AMARAN KESELAMATAN</h3>
+    <p>Jangan ukur rintangan atau continuity pada litar hidup. Jangan letakkan multimeter dalam mod ampere merentasi terminal bateri. Elakkan litar airbag dan sistem voltan tinggi tanpa latihan serta peralatan yang sesuai.</p>
+  </div>
+
+  <div class="notice">
+    <h3>LATIHAN MULTIMETER</h3>
+    <p>Soalan: Anda mahu mengukur voltan bateri 12V ketika enjin dimatikan. Tetapan manakah yang sesuai?</p>
+    <select id="electricalQuiz" style="width:100%;padding:10px;margin:8px 0">
+      <option value="">Pilih jawapan</option>
+      <option value="ac">AC Voltage</option>
+      <option value="dc">DC Voltage</option>
+      <option value="ohm">Resistance (Ohm)</option>
+    </select>
+    <button class="action" onclick="document.getElementById('electricalResult').textContent=document.getElementById('electricalQuiz').value==='dc'?'Betul! Gunakan DC Voltage untuk mengukur voltan bateri kenderaan.':'Belum tepat. Pilih DC Voltage untuk mengukur voltan bateri.'">SEMAK JAWAPAN</button>
+    <p id="electricalResult"></p>
+  </div>
+
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+ }else if(i===6){
+  box.innerHTML = `<h2>MODUL 7: ENGINE & TRANSMISSION DIAGNOSIS</h2>
+  <p>Belajar mengenal pasti kerosakan enjin dan transmisi menggunakan DTC, live data dan pemeriksaan fizikal.</p>
+
+  <div class="notice">
+    <h3>1. ENGINE DIAGNOSIS</h3>
+    <p><strong>Misfire:</strong> Pembakaran tidak berlaku dengan sempurna pada satu atau lebih silinder.</p>
+    <p><strong>Knocking:</strong> Bunyi ketukan yang mungkin berkaitan pembakaran tidak normal atau masalah mekanikal.</p>
+    <p><strong>Loss of power:</strong> Kehilangan kuasa boleh berpunca daripada sistem udara, bahan api, ignition atau exhaust.</p>
+    <p><strong>Rough idle:</strong> Enjin bergegar ketika idle. Periksa misfire, kebocoran vakum dan fuel trim.</p>
+  </div>
+
+  <div class="notice">
+    <h3>2. FUEL & COOLING SYSTEM</h3>
+    <p><strong>Fuel pump:</strong> Membekalkan bahan api pada tekanan yang ditetapkan pengeluar.</p>
+    <p><strong>Fuel injector:</strong> Menyembur bahan api mengikut arahan ECU.</p>
+    <p><strong>Thermostat:</strong> Mengawal aliran coolant untuk membantu enjin mencapai suhu operasi.</p>
+    <p><strong>Radiator:</strong> Membantu membuang haba daripada coolant.</p>
+    <p><strong>ECT sensor:</strong> Menghantar maklumat suhu coolant kepada ECU.</p>
+  </div>
+
+  <div class="notice">
+    <h3>3. TRANSMISSION DIAGNOSIS</h3>
+    <p><strong>Gear slipping:</strong> RPM meningkat tetapi kelajuan kenderaan tidak bertambah seperti sepatutnya.</p>
+    <p><strong>Harsh shifting:</strong> Pertukaran gear terasa kasar atau tersentak.</p>
+    <p><strong>Delayed engagement:</strong> Terdapat kelewatan apabila memilih D atau R.</p>
+    <p><strong>Solenoid:</strong> Mengawal aliran dan tekanan minyak transmisi mengikut arahan sistem kawalan.</p>
+    <p><strong>Torque converter:</strong> Memindahkan kuasa enjin ke transmisi automatik.</p>
+  </div>
+
+  <div class="notice">
+    <h3>4. DTC ENGINE & TRANSMISSION</h3>
+    <p><strong>P0300:</strong> Random / Multiple Cylinder Misfire. Periksa ignition, bahan api, compression dan kebocoran udara.</p>
+    <p><strong>P0171:</strong> System Too Lean (Bank 1). Periksa kebocoran vakum, MAF, tekanan bahan api dan exhaust leak sebelum sensor diganti.</p>
+    <p><strong>P0700:</strong> Transmission Control System Malfunction. Baca kod khusus daripada TCM jika disokong scanner.</p>
+    <p><strong>P0730:</strong> Incorrect Gear Ratio. Periksa data gear, kelajuan input/output, keadaan ATF dan kemungkinan masalah dalaman transmisi.</p>
+    <p><strong>P0741:</strong> Torque Converter Clutch Performance or Stuck Off. Periksa data TCC, solenoid, wiring dan keadaan transmisi.</p>
+    <p><strong>Nota:</strong> Maksud dan prosedur pengesahan kod boleh berbeza mengikut jenama, model dan tahun kenderaan.</p>
+  </div>
+
+  <div class="notice">
+    <h3>5. PROSEDUR DIAGNOSIS</h3>
+    <ol>
+      <li>Temu bual pemilik dan catat simptom.</li>
+      <li>Periksa lampu amaran dan keadaan fizikal kenderaan.</li>
+      <li>Scan ECU dan TCM jika disokong.</li>
+      <li>Simpan DTC, freeze frame dan live data sebelum memadam kod.</li>
+      <li>Periksa bateri, connector, wiring dan paras bendalir mengikut manual.</li>
+      <li>Jalankan ujian khusus untuk mengesahkan punca.</li>
+      <li>Baiki punca sebenar dan lakukan pemeriksaan semula.</li>
+    </ol>
+  </div>
+
+  <div class="notice">
+    <h3>6. LATIHAN DIAGNOSIS</h3>
+    <p>Simptom: RPM enjin meningkat tetapi kenderaan lambat bergerak ketika memecut. Apakah kemungkinan masalah yang perlu diperiksa?</p>
+    <select id="engineQuiz" style="width:100%;padding:10px;margin:8px 0">
+      <option value="">Pilih jawapan</option>
+      <option value="a">Gearbox slipping</option>
+      <option value="b">Lampu kabin rosak</option>
+      <option value="c">Wiper rosak</option>
+    </select>
+    <button class="action" onclick="document.getElementById('engineResult').textContent=document.getElementById('engineQuiz').value==='a'?'Betul! Gearbox slipping ialah salah satu kemungkinan. Sahkan melalui pemeriksaan dan data transmisi.':'Belum tepat. Periksa kemungkinan gearbox slipping.'">SEMAK JAWAPAN</button>
+    <p id="engineResult"></p>
+  </div>
+
+  <div class="notice">
+    <h3>AMARAN KESELAMATAN</h3>
+    <p>Jangan membuka sistem bahan api bertekanan atau transmisi panas tanpa prosedur yang betul. Jangan membuat ujian jalan raya secara berbahaya. Gunakan manual servis dan peralatan perlindungan yang sesuai.</p>
+  </div>
+
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+
+ }else if(i===7){
+  box.innerHTML = `<h2>MODUL 8: ABS, SRS & ADVANCED SYSTEMS</h2>
+  <p>Kenali sistem keselamatan elektronik kenderaan dan kaedah diagnosis menggunakan scanner yang menyokong sistem berkaitan.</p>
+
+  <div class="notice">
+    <h3>1. SISTEM ABS</h3>
+    <p><strong>ABS (Anti-lock Braking System):</strong> Membantu mengelakkan roda terkunci ketika membrek kuat supaya pemandu dapat mengekalkan kawalan stereng.</p>
+    <p><strong>Wheel Speed Sensor:</strong> Menghantar maklumat kelajuan putaran setiap roda kepada modul ABS.</p>
+    <p><strong>ABS Control Module:</strong> Memproses maklumat sensor dan mengawal operasi sistem ABS.</p>
+    <p><strong>Hydraulic Control Unit:</strong> Mengawal tekanan brek semasa ABS beroperasi.</p>
+  </div>
+
+  <div class="notice">
+    <h3>2. EBD, ESC & TRACTION CONTROL</h3>
+    <p><strong>EBD:</strong> Electronic Brakeforce Distribution membantu mengagihkan daya brek mengikut keadaan kenderaan.</p>
+    <p><strong>ESC:</strong> Electronic Stability Control membantu mengekalkan kestabilan kenderaan apabila berlaku gelinciran.</p>
+    <p><strong>Traction Control:</strong> Membantu mengurangkan putaran roda yang kehilangan cengkaman ketika memecut.</p>
+    <p><strong>Brake Assist:</strong> Membantu meningkatkan daya brek ketika sistem mengesan situasi membrek kecemasan, bergantung pada reka bentuk kenderaan.</p>
+  </div>
+
+  <div class="notice">
+    <h3>3. SISTEM SRS & AIRBAG</h3>
+    <p><strong>SRS:</strong> Supplemental Restraint System ialah sistem perlindungan tambahan kepada tali pinggang keselamatan.</p>
+    <p><strong>Airbag:</strong> Beg udara yang mengembang dalam keadaan pelanggaran tertentu.</p>
+    <p><strong>Crash Sensor:</strong> Mengesan nyahpecutan atau impak mengikut reka bentuk sistem.</p>
+    <p><strong>SRS Control Module:</strong> Memproses maklumat sensor dan mengawal sistem keselamatan.</p>
+    <p><strong>Seat Belt Pretensioner:</strong> Menegangkan tali pinggang ketika keadaan kemalangan tertentu.</p>
+  </div>
+
+  <div class="notice">
+    <h3>4. DTC ABS & SRS</h3>
+    <p><strong>C0035:</strong> Wheel Speed Sensor Left Front Circuit. Periksa sensor roda hadapan kiri, connector dan wiring. Maksud khusus bergantung pengeluar.</p>
+    <p><strong>C0040:</strong> Wheel Speed Sensor Right Front Circuit. Periksa sensor roda hadapan kanan dan litar berkaitan. Maksud khusus bergantung pengeluar.</p>
+    <p><strong>U0121:</strong> Lost Communication With ABS Control Module. Periksa bekalan kuasa, ground, rangkaian komunikasi dan modul ABS.</p>
+    <p><strong>B0020:</strong> Kod berkaitan sistem SRS yang maksud tepatnya bergantung kepada pengeluar dan model. Rujuk penerangan khusus scanner atau manual servis.</p>
+    <p><strong>Nota:</strong> Kod C dan B bukan semuanya mempunyai maksud universal. Sahkan kod mengikut jenama, model dan tahun kenderaan.</p>
+  </div>
+
+  <div class="notice">
+    <h3>5. PROSEDUR DIAGNOSIS ABS</h3>
+    <ol>
+      <li>Periksa lampu amaran ABS pada meter.</li>
+      <li>Gunakan scanner yang menyokong modul ABS.</li>
+      <li>Baca dan simpan DTC serta freeze frame jika tersedia.</li>
+      <li>Periksa live data kelajuan setiap roda.</li>
+      <li>Bandingkan bacaan sensor ketika ujian yang selamat.</li>
+      <li>Periksa connector, wiring dan komponen berdasarkan manual servis.</li>
+      <li>Baiki punca dan lakukan pengesahan semula.</li>
+    </ol>
+  </div>
+
+  <div class="notice">
+    <h3>6. PROSEDUR DIAGNOSIS SRS</h3>
+    <ol>
+      <li>Periksa lampu amaran SRS pada meter.</li>
+      <li>Gunakan scanner yang menyokong sistem SRS.</li>
+      <li>Simpan kod kerosakan sebelum sebarang tindakan.</li>
+      <li>Rujuk manual servis untuk prosedur pemeriksaan khusus.</li>
+      <li>Periksa bekalan kuasa dan wiring hanya mengikut prosedur pengeluar.</li>
+      <li>Selepas pembaikan, lakukan pemeriksaan dan pengesahan sistem.</li>
+    </ol>
+  </div>
+
+  <div class="notice">
+    <h3>7. LATIHAN DIAGNOSIS</h3>
+    <p>Lampu ABS menyala. Scanner menunjukkan masalah pada wheel speed sensor hadapan kiri. Apakah tindakan pertama yang sesuai?</p>
+    <select id="absQuiz" style="width:100%;padding:10px;margin:8px 0">
+      <option value="">Pilih jawapan</option>
+      <option value="a">Terus tukar modul ABS</option>
+      <option value="b">Periksa sensor, connector dan wiring roda hadapan kiri</option>
+      <option value="c">Padam semua kod tanpa pemeriksaan</option>
+    </select>
+    <button class="action" onclick="document.getElementById('absResult').textContent=document.getElementById('absQuiz').value==='b'?'Betul! Periksa sensor dan litar dahulu sebelum mengganti komponen.':'Belum tepat. Mulakan dengan pemeriksaan sensor, connector dan wiring.'">SEMAK JAWAPAN</button>
+    <p id="absResult"></p>
+  </div>
+
+  <div class="notice">
+    <h3>AMARAN KESELAMATAN PENTING</h3>
+    <p>Jangan menguji penyambung airbag atau pretensioner menggunakan multimeter biasa atau test light. Jangan mengukur rintangan litar squib. Sistem SRS mesti dinyahaktifkan mengikut prosedur dan tempoh menunggu pengeluar sebelum kerja berkaitan dilakukan. Jangan membuka atau mengendalikan komponen airbag tanpa latihan yang sesuai.</p>
+    <p>Diagnosis ABS dan sistem brek juga mesti mengikut manual servis. Jangan memandu jika keadaan brek tidak selamat.</p>
+  </div>
+
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+
+ }else if(i===8){
+  box.innerHTML = `<h2>MODUL 9: REAL CASE STUDY</h2>
+  <p>Belajar menyelesaikan masalah kenderaan menggunakan kaedah diagnosis tersusun seperti di bengkel.</p>
+
+  <div class="notice">
+    <h3>KES 1: HONDA JAZZ - KOD P0328</h3>
+    <p><strong>Simptom:</strong> Lampu Check Engine menyala. Enjin mungkin mengalami prestasi tidak normal.</p>
+    <p><strong>DTC:</strong> P0328 - Knock Sensor 1 Circuit High Input (Bank 1 atau Single Sensor).</p>
+    <p><strong>Kemungkinan punca:</strong> Knock sensor rosak, connector longgar, wiring terbuka atau pintas, atau masalah litar.</p>
+    <p><strong>Pemeriksaan:</strong> Sahkan kod menggunakan scanner, periksa connector dan wiring, kemudian uji litar mengikut spesifikasi manual servis.</p>
+    <p><strong>Penyelesaian:</strong> Baiki wiring atau ganti sensor hanya selepas ujian mengesahkan kerosakan.</p>
+  </div>
+
+  <div class="notice">
+    <h3>KES 2: ENJIN SEMPUT - KOD P0300</h3>
+    <p><strong>Simptom:</strong> Enjin bergegar, idle tidak stabil dan kuasa berkurangan.</p>
+    <p><strong>DTC:</strong> P0300 - Random / Multiple Cylinder Misfire.</p>
+    <p><strong>Kemungkinan punca:</strong> Spark plug, ignition coil, fuel injector, kebocoran vakum atau compression rendah.</p>
+    <p><strong>Pemeriksaan:</strong> Simpan freeze frame, semak misfire data jika tersedia, periksa sistem ignition, bahan api dan compression.</p>
+    <p><strong>Penyelesaian:</strong> Baiki punca yang telah disahkan dan lakukan ujian semula.</p>
+  </div>
+
+  <div class="notice">
+    <h3>KES 3: CHECK ENGINE - KOD P0420</h3>
+    <p><strong>Simptom:</strong> Lampu Check Engine menyala. Kadangkala penggunaan bahan api atau prestasi turut berubah.</p>
+    <p><strong>DTC:</strong> P0420 - Catalyst System Efficiency Below Threshold (Bank 1).</p>
+    <p><strong>Kemungkinan punca:</strong> Catalytic converter kurang cekap, kebocoran exhaust, masalah sensor oksigen atau misfire yang belum diselesaikan.</p>
+    <p><strong>Pemeriksaan:</strong> Periksa kebocoran ekzos, rekod live data sensor O2 dan pastikan tiada masalah enjin yang mempengaruhi bacaan.</p>
+    <p><strong>Penyelesaian:</strong> Sahkan keadaan catalytic converter dan sensor sebelum mengganti mana-mana komponen.</p>
+  </div>
+
+  <div class="notice">
+    <h3>KES 4: MASALAH TRANSMISI - KOD P0730</h3>
+    <p><strong>Simptom:</strong> Pertukaran gear tidak normal, kenderaan terasa lemah atau RPM meningkat tanpa pertambahan kelajuan yang sepadan.</p>
+    <p><strong>DTC:</strong> P0730 - Incorrect Gear Ratio.</p>
+    <p><strong>Kemungkinan punca:</strong> Paras atau keadaan ATF tidak betul, sensor kelajuan input/output, solenoid atau kerosakan dalaman transmisi.</p>
+    <p><strong>Pemeriksaan:</strong> Scan TCM jika disokong, periksa DTC berkaitan, data input/output speed dan ATF mengikut prosedur pengeluar.</p>
+    <p><strong>Penyelesaian:</strong> Kenal pasti punca melalui ujian khusus sebelum membuat pembaikan transmisi.</p>
+  </div>
+
+  <div class="notice">
+    <h3>5. FORMULA DIAGNOSIS BENGKEL</h3>
+    <ol>
+      <li>Dapatkan maklumat simptom daripada pemilik.</li>
+      <li>Buat pemeriksaan visual dan keselamatan.</li>
+      <li>Scan sistem berkaitan dan simpan DTC.</li>
+      <li>Semak freeze frame dan live data.</li>
+      <li>Bina senarai kemungkinan punca.</li>
+      <li>Lakukan ujian untuk mengesahkan punca sebenar.</li>
+      <li>Baiki, uji semula dan rekod hasil pembaikan.</li>
+    </ol>
+  </div>
+
+  <div class="notice">
+    <h3>6. LATIHAN KAJIAN KES</h3>
+    <p>Sebuah kereta menunjukkan kod P0300 dan enjin bergegar ketika idle. Apakah tindakan diagnosis yang paling tepat?</p>
+    <select id="caseQuiz" style="width:100%;padding:10px;margin:8px 0">
+      <option value="">Pilih jawapan</option>
+      <option value="a">Terus tukar ECU</option>
+      <option value="b">Simpan freeze frame dan periksa sistem ignition, bahan api serta kemungkinan kebocoran udara</option>
+      <option value="c">Padam kod dan serahkan kereta</option>
+    </select>
+    <button class="action" onclick="document.getElementById('caseResult').textContent=document.getElementById('caseQuiz').value==='b'?'Betul! Diagnosis perlu bermula dengan data dan pemeriksaan sebelum mengganti komponen.':'Belum tepat. Simpan data dan lakukan pemeriksaan mengikut kemungkinan punca.'">SEMAK JAWAPAN</button>
+    <p id="caseResult"></p>
+  </div>
+
+  <div class="notice">
+    <h3>NOTA PENTING</h3>
+    <p>Kes-kes ini ialah simulasi pendidikan. Kod DTC, prosedur ujian dan nilai spesifikasi boleh berbeza mengikut jenama, model, tahun dan jenis enjin. Rujuk manual servis sebelum membuat pembaikan.</p>
+  </div>
+
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+
+ }else if(i===9){
+  box.innerHTML=`
+  <h2>MODUL 10: FINAL EXAMINATION</h2>
+  <p>Peperiksaan akhir KARDRIVER OBD2 ACADEMY.</p>
+  <div class="notice">
+   <strong>ARAHAN PEPERIKSAAN</strong>
+   <p>30 soalan objektif. Setiap soalan mempunyai satu jawapan terbaik.</p>
+   <p>Markah lulus: 24/30 (80%). Sijil diberikan selepas lulus.</p>
+   <p>Masukkan nama penuh seperti yang mahu dicetak pada sijil.</p>
+  </div>
+  <div class="card">
+   <label> NAMA PENUH PELAJAR </label>
+   <input id="finalStudentName" maxlength="80" placeholder="Contoh: Ahmad bin Ali">
+   <button class="action" onclick="startFinalExam()">MULA PEPERIKSAAN</button>
+  </div>
+  <div id="finalExamArea"></div>
+  <button class="action" onclick="completeLesson(9)">TANDA MODUL SELESAI / MARK COMPLETE</button>
+  <p class="muted">Sijil ini ialah sijil tamat kursus dalaman, bukan kelayakan profesional bertauliah.</p>`;
+}else{
+  box.innerHTML=`<h2>${courses[i][0]}</h2><p>${courses[i][1]}</p>
+  <p>Pelajaran ini akan mengajar anda memahami fungsi sistem dan langkah pemeriksaan secara tersusun.</p>
+  <div class="notice">Kandungan ini ialah nota pengenalan. Ikut manual servis kenderaan dan amalan keselamatan semasa pemeriksaan.</div>
+  <button class="action" onclick="completeLesson(${i})">TANDA SELESAI / MARK COMPLETE</button>`;
+ }
+ box.scrollIntoView({behavior:"smooth"});
+}
+
+
+const finalExamQuestions = [
+ {q:"Apakah fungsi utama sistem OBD-II?",a:["Membaca maklumat diagnostik kenderaan","Mengecas bateri","Mengawal tekanan tayar"],c:0},
+ {q:"Di manakah lokasi port OBD-II biasanya?",a:["Dalam tangki minyak","Di bawah dashboard berhampiran ruang pemandu","Dalam ruang enjin sahaja"],c:1},
+ {q:"Apakah maksud DTC?",a:["Digital Transmission Control","Diagnostic Trouble Code","Driving Test Computer"],c:1},
+ {q:"Apakah maksud kod P0300?",a:["Misfire rawak atau beberapa silinder","Masalah ABS","Suhu coolant rendah"],c:0},
+ {q:"Apakah tindakan awal selepas membaca DTC?",a:["Terus tukar ECU","Padam semua kod","Simpan kod dan freeze frame untuk diagnosis"],c:2},
+ {q:"Apakah fungsi freeze frame?",a:["Merekod keadaan operasi ketika DTC dikesan","Menetapkan gear automatik","Menguji tekanan tayar"],c:0},
+ {q:"Apakah maksud RPM?",a:["Tekanan minyak","Putaran enjin seminit","Suhu udara"],c:1},
+ {q:"ECT merujuk kepada sensor apa?",a:["Suhu coolant enjin","Tekanan tayar","Kelajuan roda"],c:0},
+ {q:"Apakah fungsi sensor MAF?",a:["Mengukur aliran udara masuk","Mengukur paras minyak enjin","Mengesan tekanan brek"],c:0},
+ {q:"Apakah fungsi sensor O2?",a:["Mengukur kelajuan kenderaan","Membantu pemantauan kandungan oksigen ekzos","Mengawal kipas kabin"],c:1},
+ {q:"Apakah maksud STFT?",a:["Short Term Fuel Trim","Sensor Timing Fuel Test","Standard Transmission Flow"],c:0},
+ {q:"Bacaan fuel trim positif yang tinggi boleh menunjukkan apa?",a:["ECU menambah bahan api; siasat kemungkinan campuran lean","Bateri terlebih cas","Minyak gear terlalu panas"],c:0},
+ {q:"Apakah fungsi sensor CKP?",a:["Mengesan kedudukan dan putaran crankshaft","Mengukur suhu kabin","Mengawal lampu brek"],c:0},
+ {q:"Apakah fungsi sensor CMP?",a:["Mengesan kedudukan camshaft","Mengukur tekanan tayar","Mengesan paras coolant"],c:0},
+ {q:"Apakah fungsi ignition coil?",a:["Menaikkan voltan untuk menghasilkan percikan palam pencucuh","Mengepam minyak enjin","Menyejukkan transmisi"],c:0},
+ {q:"Apakah langkah pertama sebelum menguji continuity?",a:["Pastikan litar tidak mempunyai bekalan kuasa","Hidupkan enjin","Sentuhkan probe pada terminal bateri"],c:0},
+ {q:"Multimeter pada mod resistance digunakan untuk mengukur apa?",a:["Rintangan elektrik","Suhu coolant sahaja","Tekanan bahan api"],c:0},
+ {q:"Apakah fungsi fius?",a:["Melindungi litar daripada arus berlebihan","Meningkatkan kuasa enjin","Mengawal campuran bahan api"],c:0},
+ {q:"Apakah fungsi relay?",a:["Suis elektrik yang dikawal oleh litar lain","Penapis udara","Sensor oksigen"],c:0},
+ {q:"Apakah maksud ground yang baik?",a:["Sambungan bumi elektrik yang mempunyai laluan rendah rintangan","Wayar yang tidak bersambung","Terminal positif bateri"],c:0},
+ {q:"Apakah maksud P0171?",a:["System Too Lean Bank 1","Misfire silinder 1","Masalah catalytic converter"],c:0},
+ {q:"Apakah maksud P0730?",a:["Incorrect Gear Ratio","Knock Sensor High","ABS Pump Failure"],c:0},
+ {q:"Apakah tindakan sesuai jika transmisi mengalami slip?",a:["Periksa DTC, data berkaitan dan ATF mengikut spesifikasi","Terus tukar ECU enjin","Abaikan simptom"],c:0},
+ {q:"Apakah fungsi ABS?",a:["Membantu mengelakkan roda terkunci ketika membrek","Meningkatkan tekanan minyak enjin","Mengawal penghawa dingin"],c:0},
+ {q:"Apakah fungsi wheel speed sensor?",a:["Menghantar maklumat kelajuan roda kepada sistem berkaitan","Mengukur suhu minyak enjin","Mengawal injector"],c:0},
+ {q:"Apakah langkah keselamatan berkaitan sistem airbag?",a:["Ikut prosedur nyahaktif pengeluar dan masa menunggu","Uji squib dengan test light","Potong wayar airbag ketika bateri bersambung"],c:0},
+ {q:"Apakah maksud DTC U0121 secara umum?",a:["Lost Communication With ABS Control Module","Engine Misfire","Catalyst Efficiency"],c:0},
+ {q:"Apakah langkah terbaik apabila menemui P0328?",a:["Periksa sensor knock, connector dan wiring mengikut manual","Terus tukar catalytic converter","Tambah minyak gear"],c:0},
+ {q:"Selepas pembaikan, apakah tindakan yang betul?",a:["Uji semula, semak data dan pastikan masalah selesai","Terus serahkan tanpa ujian","Padam semua rekod servis"],c:0},
+ {q:"Apakah prinsip diagnosis yang paling tepat?",a:["Sahkan punca melalui ujian sebelum mengganti komponen","Tukar semua sensor sekali gus","Bergantung pada tekaan"],c:0}
+];
+
+let finalExamIndex = 0;
+let finalExamAnswers = [];
+let finalExamName = "";
+
+function startFinalExam(){
+ const name=document.getElementById("finalStudentName").value.trim();
+ if(name.length<3){
+  alert("Sila masukkan nama penuh pelajar.");
+  return;
+ }
+ finalExamName=name;
+ finalExamIndex=0;
+ finalExamAnswers=[];
+ renderFinalExamQuestion();
+}
+
+function renderFinalExamQuestion(){
+ const q=finalExamQuestions[finalExamIndex];
+ const area=document.getElementById("finalExamArea");
+ if(!area)return;
+ area.innerHTML=`
+  <div class="card">
+   <span class="tag">SOALAN ${finalExamIndex+1} / 30</span>
+   <div class="progress"><span style="width:${(finalExamIndex+1)/30*100}%"></span></div>
+   <h3>${q.q}</h3>
+   ${q.a.map((a,i)=>`
+    <label class="item" style="display:block;cursor:pointer">
+     <input type="radio" name="finalAnswer" value="${i}" style="width:auto;margin-right:8px">
+     ${String.fromCharCode(65+i)}. ${a}
+    </label>`).join("")}
+   <button class="action" onclick="submitFinalAnswer()">
+    ${finalExamIndex===29?"HANTAR PEPERIKSAAN":"SOALAN SETERUSNYA"}
+   </button>
+  </div>`;
+ area.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function submitFinalAnswer(){
+  alert("FUNGSI HANTAR BERJAYA DIPANGGIL");
+ const selected=document.querySelector('input[name="finalAnswer"]:checked');
+ if(!selected){
+  alert("Sila pilih satu jawapan.");
+  return;
+ }
+ finalExamAnswers.push(Number(selected.value));
+ if(finalExamIndex<29){
+  finalExamIndex++;
+  renderFinalExamQuestion();
+ }else{
+  console.log("HANTAR:",finalExamAnswers.length);
+  try {
+   finishFinalExam();
+  } catch(error) {
+   alert("RALAT PEPERIKSAAN: " + error.message);
+   console.error(error);
+  }
+ }
+}
+
+function finishFinalExam(){
+ const correct=finalExamAnswers.reduce((total,answer,index)=>
+  total+(answer===finalExamQuestions[index].c?1:0),0);
+ const percent=Math.round(correct/30*100);
+ const passed=correct>=24;
+ const area=document.getElementById("finalExamArea");
+ const safeName=finalExamName.replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+ const date=new Date().toLocaleDateString("ms-MY");
+ const certNo="KAR-"+Date.now();
+ const certBgUrl=new URL("certificate-bg-clean.png",window.location.href).href;
+
+ if(passed){
+  area.innerHTML=`
+  <div class="card">
+   <h2>KEPUTUSAN: LULUS</h2>
+   <h1>${correct}/30 (${percent}%)</h1>
+   <p>Tahniah! Anda layak menerima sijil tamat kursus.</p>
+
+   <div id="karfxCertificate" class="cert-image-wrap">
+  <style>
+    .cert-image-wrap{
+      position:relative;width:100%;max-width:1100px;aspect-ratio:3/2;
+      margin:0 auto;overflow:hidden;line-height:1;background:#06111f;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    }
+    .cert-bg{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:fill}
+    .cert-overlay{
+      position:absolute;display:flex;align-items:center;justify-content:center;
+      text-align:center;line-height:1.1;overflow-wrap:anywhere;
+    }
+    .cert-name{
+      left:7.5%;top:37.3%;width:51%;height:8.3%;
+      font-size:clamp(20px,3.2vw,46px);font-weight:900;color:#ffd35b;
+      text-shadow:0 2px 5px #000,0 0 8px #ffbd32;
+    }
+    .cert-score{
+      left:20.5%;top:63.3%;width:25%;height:8.3%;
+      font-size:clamp(22px,3vw,42px);font-weight:900;color:#fff;
+      text-shadow:0 0 8px #00dfff;
+    }
+    .cert-date{
+      left:13%;top:72.3%;width:16.2%;height:3.6%;
+      font-size:clamp(10px,1.25vw,16px);font-weight:900;color:#fff;
+      text-shadow:0 1px 3px #000;
+    }
+    .cert-number{
+      left:37%;top:72.3%;width:17%;height:3.6%;
+      font-size:clamp(9px,1.15vw,15px);font-weight:900;color:#fff;
+      text-shadow:0 1px 3px #000;
+    }
+    @page{size:A4 landscape;margin:0}
+    @media print{
+      html,body{margin:0!important;padding:0!important;width:297mm;height:210mm}
+      .cert-image-wrap{
+        width:297mm;height:198mm;max-width:none;aspect-ratio:auto;
+        margin:6mm auto;page-break-inside:avoid;
+      }
+      .cert-name{font-size:8.5mm;font-weight:900}
+      .cert-score{font-size:10mm}
+      .cert-date{font-size:3.5mm;font-weight:900}
+      .cert-number{font-size:3.2mm;font-weight:900}
+    }
+  </style>
+  <img class="cert-bg" src="${certBgUrl}" alt="KARDRIVER OBD2 ACADEMY certificate">
+  <div class="cert-overlay cert-name">${safeName}</div>
+  <div class="cert-overlay cert-score">${percent}%</div>
+  <div class="cert-overlay cert-date">${date}</div>
+  <div class="cert-overlay cert-number">${certNo}</div>
+</div>
+
+   <button class="action" onclick="printKarfxCertificate()">CETAK / SIMPAN SIJIL PDF</button>
+  </div>`;
+ area.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+else {
+  area.innerHTML='<div class="card"><h2>KEPUTUSAN: BELUM LULUS</h2><h1>'+correct+'/30 ('+percent+'%)</h1><p>Markah minimum ialah 24/30 (80%). Sila ulang kaji dan cuba lagi.</p></div>';
+  area.scrollIntoView({behavior:"smooth",block:"start"});
+ }
+}
+
+function printKarfxCertificate(){
+ const cert=document.getElementById("karfxCertificate");
+ if(!cert){alert("Sijil belum tersedia.");return;}
+ const win=window.open("","_blank");
+ if(!win){alert("Benarkan pop-up pada browser untuk mencetak sijil.");return;}
+
+ const styles=`
+ body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:15px}
+ .cert-premium{position:relative;overflow:hidden;background:radial-gradient(circle at 80% 40%,#103c59,#071321 65%);color:#eafaff;border:5px solid #17dcff;outline:2px solid #a5f5ff;outline-offset:-12px;padding:28px;min-height:490px;box-shadow:0 0 20px #00cfff}
+ .cert-top{text-align:center;border-bottom:1px solid #168eae;padding-bottom:12px}
+ .cert-brand{font-size:25px;font-weight:900;letter-spacing:5px;color:#20e8ff}
+ .cert-academy{font-size:17px;font-weight:bold;letter-spacing:4px}
+ .cert-subtitle{font-size:9px;letter-spacing:5px;color:#8adcf0;margin-top:5px}
+ .cert-main{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:center;padding:18px 0}
+ .cert-left{text-align:center}
+ .cert-kicker{font-size:10px;letter-spacing:4px;color:#ffc65c}
+ .cert-heading{font-size:34px;font-weight:900;letter-spacing:3px;color:#fff}
+ .cert-completion{font-size:17px;font-weight:bold;color:#20e8ff;letter-spacing:5px}
+ .cert-intro{margin-top:18px}
+ .cert-name{font-size:25px;font-weight:900;color:#ffc65c;border-bottom:2px solid #b88b36;padding:10px 0;overflow-wrap:anywhere}
+ .cert-course{font-weight:bold;color:#27eaff;border:1px solid #16b9df;padding:10px;margin:12px 0}
+ .cert-score{font-size:40px;font-weight:900;color:#25eaff}
+ .cert-details{display:flex;justify-content:space-around;gap:10px;margin-top:12px;text-align:left}
+ .cert-details span{display:block;font-size:9px;color:#30dfff;letter-spacing:2px}
+ .cert-details strong{font-size:11px}
+ .cert-sign{margin-top:20px;border-top:1px solid #168eae;padding-top:10px;font-size:11px}
+ .cert-sign-line{font-style:italic;font-size:15px;color:#fff;margin-bottom:6px}
+ .cert-engine{text-align:center;border:1px solid #137d9f;border-radius:12px;padding:10px;background:radial-gradient(circle,#124361,#071321)}
+ .cert-engine svg{width:100%;max-height:260px}
+ .engine-label,.engine-chip,.cert-skills{font-size:10px;letter-spacing:2px;color:#28eaff}
+ .engine-chip{border:1px solid #1aaaca;padding:7px}
+ .cert-skills{font-size:9px;margin-top:10px}
+ .cert-bottom{text-align:center;border-top:1px solid #168eae;padding-top:12px;color:#28eaff;font-weight:bold;letter-spacing:2px}
+ .cert-bottom small{display:block;color:#c4d7e3;font-size:9px;font-weight:normal;letter-spacing:0;margin-top:8px}
+
+ .cert-showcase{
+  width:100%;box-sizing:border-box;position:relative;overflow:hidden;
+  padding:24px;background:linear-gradient(125deg,#06111f,#102b40 55%,#071321);
+  color:#eafaff;border:5px solid #d6a84b;outline:2px solid #21dcff;
+  outline-offset:-12px;box-shadow:0 0 25px #00cfff;
+  font-family:Arial,sans-serif;aspect-ratio:1.414/1;
+ }
+ .showcase-top{text-align:center;border-bottom:2px solid #b88b36;padding-bottom:10px}
+ .showcase-brand{font-size:30px;font-weight:900;letter-spacing:7px;color:#22eaff}
+ .showcase-academy{font-size:19px;font-weight:bold;letter-spacing:5px}
+ .showcase-subtitle{font-size:9px;letter-spacing:5px;color:#e6bd65}
+ .showcase-body{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:center;padding:18px 0}
+ .showcase-left{text-align:center}
+ .showcase-title{font-size:36px;font-weight:900;letter-spacing:4px;color:#f5d27b}
+ .showcase-completion{font-size:17px;letter-spacing:5px;color:#22eaff;font-weight:bold}
+ .showcase-intro{margin-top:12px}
+ .showcase-name{font-size:27px;font-weight:900;color:#ffd36c;border-bottom:2px solid #c79b43;padding:8px;overflow-wrap:anywhere}
+ .showcase-course{font-weight:bold;color:#27eaff;border:1px solid #c79b43;padding:9px;margin:10px 0}
+ .showcase-score{font-size:38px;font-weight:900;color:#ffd36c}
+ .showcase-details{display:flex;justify-content:space-around;gap:8px;margin-top:10px}
+ .showcase-details span{display:block;font-size:9px;color:#22eaff;letter-spacing:2px}
+ .showcase-details strong{font-size:11px}
+ .showcase-sign{margin-top:14px;border-top:1px solid #b88b36;padding-top:8px;font-size:10px}
+ .showcase-signature{font-size:19px;font-style:italic;color:#f5d27b}
+ .showcase-sign small{display:block;color:#22eaff;margin-top:4px}
+ .showcase-right{text-align:center;border:1px solid #1aaaca;border-radius:14px;padding:10px;background:radial-gradient(circle,#174b68,#071321)}
+ .showcase-car{font-size:11px;letter-spacing:3px;color:#f5d27b}
+ .showcase-engine svg{width:100%;max-height:230px}
+ .showcase-device{font-size:10px;color:#22eaff;letter-spacing:2px}
+ .showcase-skills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px}
+ .showcase-skills span{font-size:9px;border:1px solid #1aaaca;padding:5px;color:#bdefff}
+ .showcase-footer{text-align:center;border-top:1px solid #b88b36;padding-top:10px;color:#f5d27b;font-weight:bold;letter-spacing:2px}
+ .showcase-footer small{display:block;color:#c4d7e3;font-size:9px;font-weight:normal;letter-spacing:0;margin-top:7px}
+ @media(max-width:650px){.showcase-body{grid-template-columns:1fr}.cert-showcase{aspect-ratio:auto}.showcase-title{font-size:28px}}
+ @page{size:A4 landscape;margin:8mm}
+ @media print{body{padding:0}.cert-premium{min-height:175mm;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+ `;
+
+ win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>KARDRIVER Certificate</title><style>${styles}</style></head><body>${cert.outerHTML}<script>window.onload=function(){window.print();}<\/script>
+</body></html>`);
+ win.document.close();
+}
+
+function karfxLiveAnalyze(){
+ const get=id=>Number(document.getElementById(id).value);
+ const rpm=get("kl_rpm"), ect=get("kl_ect"), maf=get("kl_maf");
+ const o2=get("kl_o2"), trim=get("kl_trim");
+ let r=[];
+
+ if(![rpm,ect,maf,o2,trim].every(Number.isFinite)){
+   document.getElementById("kl_result").textContent="Sila masukkan semua bacaan dengan betul.";
+   return;
+ }
+
+ r.push("<strong>HASIL ANALISIS LATIHAN</strong>");
+ r.push("RPM: "+(rpm>=600&&rpm<=900?"Dalam panduan idle biasa":"Perlu semakan RPM mengikut spesifikasi kenderaan"));
+ r.push("ECT: "+(ect>=80&&ect<=105?"Dalam julat suhu operasi panduan":"Semak suhu operasi, coolant dan thermostat"));
+ r.push("MAF: "+(maf>0?"Bacaan direkodkan. Bandingkan dengan kapasiti enjin dan RPM":"Bacaan sifar atau negatif: semak sensor dan litar"));
+r.push("O2: "+(o2<0.1?"Isyarat rendah: periksa sensor, pendawaian dan campuran":o2>0.9?"Isyarat tinggi: periksa campuran kaya, pendawaian dan sensor":"Dalam julat contoh narrowband; pastikan signal berubah naik turun"));
+r.push("STFT: "+(trim>10?"Positif tinggi: ECU menambah bahan api; periksa kebocoran udara, tekanan bahan api dan MAF":trim< -10?"Negatif tinggi: ECU mengurangkan bahan api; periksa injector dan tekanan bahan api":"Pembetulan kecil; bandingkan dengan LTFT"));
+
+ r.push("<br><strong>Nota:</strong> Ini simulasi pendidikan. Nilai normal berbeza mengikut enjin, jenis sensor, suhu dan keadaan operasi. Jangan buat keputusan menukar alat ganti berdasarkan satu bacaan sahaja.");
+
+ document.getElementById("kl_result").innerHTML=r.join("<br>");
+}
+
+function completeLesson(i){
+ let done=JSON.parse(localStorage.getItem("karfxLessons")||"[]");
+ if(!done.includes(i))done.push(i);
+ localStorage.setItem("karfxLessons",JSON.stringify(done));
+ updateStats();alert("Modul ditandakan selesai / Module completed.");
+}
+function showQuestion(){
+ answered=false;
+ const q=questions[currentQ];
+ document.getElementById("quizNumber").textContent="SOALAN "+(currentQ+1)+" / "+questions.length;
+ document.getElementById("question").textContent=q.q;
+ document.getElementById("quizFeedback").textContent="";
+ document.getElementById("answers").innerHTML=q.a.map((a,i)=>`<button class="action" onclick="answer(${i})">${String.fromCharCode(65+i)}. ${a}</button>`).join("");
+ document.getElementById("score").textContent=score;
+}
+function answer(i){
+ if(answered)return;answered=true;
+ const q=questions[currentQ];
+ if(i===q.correct){score++;localStorage.setItem("karfxScore",score);document.getElementById("quizFeedback").textContent="Betul! / Correct. "+q.why;}
+ else document.getElementById("quizFeedback").textContent="Belum tepat. / Not quite. "+q.why;
+ document.getElementById("score").textContent=score;updateStats();
+}
+function nextQuestion(){currentQ=(currentQ+1)%questions.length;showQuestion();}
+function updateStats(){
+ const done=JSON.parse(localStorage.getItem("karfxLessons")||"[]");
+ const percent=Math.round(done.length/courses.length*100);
+ document.getElementById("progressStat").textContent=percent+"%";
+ document.getElementById("progressBar").style.width=percent+"%";
+ document.getElementById("progressText").textContent=done.length+" daripada "+courses.length+" modul selesai.";
+ document.getElementById("quizStat").textContent=score;
+ document.getElementById("profileProgress").textContent="Kemajuan: "+percent+"%";
+}
+function resetProgress(){
+ if(confirm("Padam semua kemajuan demo pada telefon ini?")){
+ localStorage.removeItem("karfxLessons");localStorage.removeItem("karfxScore");score=0;updateStats();alert("Data demo telah direset.");
+ }
+}
+renderCourses();updateStats();showQuestion();
+
+function checkSensorQuiz(){
+ const answer=document.getElementById("sensorQuiz").value;
+ const result=document.getElementById("sensorQuizResult");
+ if(!answer){result.textContent="Sila pilih jawapan dahulu.";return;}
+ result.textContent=answer==="ckp"
+ ? "Betul! Semak CKP, pendawaian dan signal. Bacaan 0 RPM bukan bukti CKP pasti rosak."
+ : "Belum tepat. Fikirkan sensor yang mengesan putaran crankshaft.";
+}
+</script>
+<script src="js/garage.js"></script>
+<script src="js/service.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/auth.js"></script>
+<script type="module" src="js/firebase-auth.js"></script>
+<script src="js/profile.js"></script>
+</body>
+</html>
