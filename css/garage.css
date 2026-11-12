@@ -578,3 +578,26 @@ body.theme-admin .navbtn.active {
   border-color: var(--role-border) !important;
   color: var(--role-accent) !important;
 }
+
+/* TRON LEGACY - FORGOT PASSWORD */
+.forgot-password {
+  text-align: center;
+  margin: 12px 0 0;
+}
+
+.forgot-password button {
+  background: none;
+  border: none;
+  color: #22d3ee;
+  font-weight: bold;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
+  transition: 0.25s ease;
+}
+
+.forgot-password button:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px #22d3ee, 0 0 18px #22d3ee;
+}

@@ -478,3 +478,45 @@ onAuthStateChanged(auth, async function(user) {
 });
 
 console.log("KARDRIVER FIREBASE AUTH READY");
+
+// FORGOT PASSWORD - LOGIN PAGE
+window.handleForgotPassword = async function() {
+  const email = document.getElementById("loginEmail")?.value.trim();
+
+  if (!email) {
+    alert("Sila masukkan alamat email dahulu.");
+    document.getElementById("loginEmail")?.focus();
+    return false;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("Pautan reset password telah dihantar ke " + email);
+    return true;
+  } catch (error) {
+    console.error("Forgot password failed:", error);
+    alert("Gagal menghantar pautan reset: " + error.message);
+    return false;
+  }
+};
+
+// FORGOT PASSWORD - LOGIN PAGE
+window.handleForgotPassword = async function() {
+  const email = document.getElementById("loginEmail")?.value.trim();
+
+  if (!email) {
+    alert("Sila masukkan alamat email dahulu.");
+    document.getElementById("loginEmail")?.focus();
+    return false;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("Pautan reset password telah dihantar ke " + email);
+    return true;
+  } catch (error) {
+    console.error("Forgot password failed:", error);
+    alert("Gagal menghantar pautan reset: " + error.message);
+    return false;
+  }
+};
