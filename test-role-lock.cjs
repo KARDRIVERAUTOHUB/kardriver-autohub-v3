@@ -89,6 +89,18 @@ async function main() {
   console.log("LULUS: Pengguna biasa tidak boleh meluluskan permohonan.");
 
 
+  // UJIAN REGRESI: BACA ROLE LOCK YANG BELUM WUJUD
+  await assertSucceeds(runTransaction(otherUser, async tx => {
+    const userRef = doc(otherUser, "users/user-002");
+    const lockRef = doc(otherUser, "role_request_locks/user-002_DRIVER");
+    await tx.get(userRef);
+    const lockSnap = await tx.get(lockRef);
+    if (lockSnap.exists()) {
+      throw new Error("Role Lock sepatutnya belum wujud.");
+    }
+  }));
+  console.log("LULUS: Akaun baharu boleh memeriksa Role Lock yang belum wujud.");
+
   // UJIAN: HANTAR DRIVER BERSAMA LOCK
   const request003 = doc(user, "role_requests/request-003");
   const driverLock = doc(user, "role_request_locks/user-001_DRIVER");

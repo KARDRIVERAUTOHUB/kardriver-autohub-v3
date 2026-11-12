@@ -121,10 +121,18 @@ service cloud.firestore {
     }
 
     match /role_request_locks/{lockId} {
-      allow read: if (
-        request.auth != null
-        && resource.data.userUid == request.auth.uid
-      ) || isPlatformAdmin();
+      allow get: if isPlatformAdmin()
+        || (
+          request.auth != null
+          && (
+            lockId == request.auth.uid + "_DRIVER"
+            || lockId == request.auth.uid + "_MECHANIC"
+            || lockId == request.auth.uid + "_WORKSHOP"
+            || lockId == request.auth.uid + "_FLEET"
+          )
+        );
+
+      allow list: if isPlatformAdmin();
 
       allow create: if request.auth != null
         && request.resource.data.userUid == request.auth.uid

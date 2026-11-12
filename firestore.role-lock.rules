@@ -1,0 +1,181 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isPlatformAdmin() {
+      return request.auth != null
+        && request.auth.token.platformAdmin == true;
+    }
+
+    function allowedRole(role) {
+      return role in [
+        "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"
+      ];
+    }
+
+    function roleLockPath(uid, role) {
+      return /databases/$(database)/documents/role_request_locks/$(uid + "_" + role);
+    }
+
+    function roleRequestPath(requestId) {
+      return /databases/$(database)/documents/role_requests/$(requestId);
+    }
+
+    match /users/{userId} {
+      allow read: if (
+        request.auth != null
+        && request.auth.uid == userId
+      ) || isPlatformAdmin();
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.membership == "FREE"
+        && request.resource.data.status == "ACTIVE"
+        && request.resource.data.roles == ["OWNER"]
+        && request.resource.data.activeRole == "OWNER"
+        && request.resource.data.keys().hasOnly([
+          "name", "email", "membership",
+          "status", "createdAt", "roles", "activeRole"
+        ]);
+
+      allow update: if (
+        request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.membership == resource.data.membership
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.roles == resource.data.roles
+        && request.resource.data.activeRole in resource.data.roles
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["name", "email", "activeRole"])
+      ) || (
+        isPlatformAdmin()
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["roles"])
+        && request.resource.data.roles is list
+        && request.resource.data.roles.hasAll(resource.data.roles)
+        && request.resource.data.roles.hasAll(["OWNER"])
+        && request.resource.data.roles.hasOnly([
+          "OWNER", "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"
+        ])
+        && request.resource.data.roles.size() <= 5
+      );
+
+      allow delete: if false;
+    }
+
+    match /role_requests/{requestId} {
+      allow create: if request.auth != null
+        && request.resource.data.userUid == request.auth.uid
+        && allowedRole(request.resource.data.requestedRole)
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([request.resource.data.requestedRole])
+        && request.resource.data.status == "PENDING"
+        && request.resource.data.keys().hasOnly([
+          "userUid", "requestedRole", "status", "createdAt"
+        ])
+        && existsAfter(roleLockPath(
+          request.auth.uid,
+          request.resource.data.requestedRole
+        ))
+        && getAfter(roleLockPath(
+          request.auth.uid,
+          request.resource.data.requestedRole
+        )).data.requestId == requestId;
+
+      allow read: if (
+        request.auth != null
+        && resource.data.userUid == request.auth.uid
+      ) || isPlatformAdmin();
+
+      allow update: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["status"])
+        && (
+          (
+            request.resource.data.status == "REJECTED"
+            && !existsAfter(roleLockPath(
+              resource.data.userUid,
+              resource.data.requestedRole
+            ))
+          )
+          ||
+          (
+            request.resource.data.status == "APPROVED"
+            && existsAfter(roleLockPath(
+              resource.data.userUid,
+              resource.data.requestedRole
+            ))
+            && getAfter(roleLockPath(
+              resource.data.userUid,
+              resource.data.requestedRole
+            )).data.status == "APPROVED"
+            && getAfter(
+              /databases/$(database)/documents/users/$(resource.data.userUid)
+            ).data.roles.hasAny([resource.data.requestedRole])
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /role_request_locks/{lockId} {
+      allow get: if isPlatformAdmin()
+        || (
+          request.auth != null
+          && (
+            lockId == request.auth.uid + "_DRIVER"
+            || lockId == request.auth.uid + "_MECHANIC"
+            || lockId == request.auth.uid + "_WORKSHOP"
+            || lockId == request.auth.uid + "_FLEET"
+          )
+        );
+
+      allow list: if isPlatformAdmin();
+
+      allow create: if request.auth != null
+        && request.resource.data.userUid == request.auth.uid
+        && allowedRole(request.resource.data.requestedRole)
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([request.resource.data.requestedRole])
+        && request.resource.data.status == "PENDING"
+        && request.resource.data.requestId is string
+        && lockId == request.auth.uid + "_" + request.resource.data.requestedRole
+        && request.resource.data.keys().hasOnly([
+          "userUid", "requestedRole", "requestId",
+          "status", "createdAt"
+        ])
+        && existsAfter(roleRequestPath(
+          request.resource.data.requestId
+        ))
+        && getAfter(roleRequestPath(
+          request.resource.data.requestId
+        )).data.userUid == request.auth.uid
+        && getAfter(roleRequestPath(
+          request.resource.data.requestId
+        )).data.requestedRole == request.resource.data.requestedRole
+        && getAfter(roleRequestPath(
+          request.resource.data.requestId
+        )).data.status == "PENDING";
+
+      allow update: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["status"])
+        && request.resource.data.status == "APPROVED"
+        && getAfter(roleRequestPath(
+          resource.data.requestId
+        )).data.status == "APPROVED"
+        && getAfter(
+          /databases/$(database)/documents/users/$(resource.data.userUid)
+        ).data.roles.hasAny([resource.data.requestedRole]);
+
+      allow delete: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && getAfter(roleRequestPath(
+          resource.data.requestId
+        )).data.status == "REJECTED";
+    }
+  }
+}
