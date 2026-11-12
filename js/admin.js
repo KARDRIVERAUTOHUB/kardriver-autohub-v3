@@ -59,12 +59,27 @@ window.loadAdminDashboard = async function() {
           adminElement("strong", request.applicantName || "Nama tidak ditemui")
         );
 
-        card.appendChild(
-          adminElement("span", request.requestedRole || "-", "admin-role-label")
-        );
+        const role = String(request.requestedRole || "-").toUpperCase();
+        const roleClass = {
+          DRIVER: "role-driver",
+          MECHANIC: "role-mechanic",
+          OWNER: "role-owner",
+          ADMIN: "role-admin"
+        }[role] || "role-other";
 
         card.appendChild(
-          adminElement("span", request.status || "-", "tag")
+          adminElement("span", role, `admin-role-label ${roleClass}`)
+        );
+
+        const status = String(request.status || "-").toUpperCase();
+        const statusClass = {
+          APPROVED: "status-approved",
+          REJECTED: "status-rejected",
+          PENDING: "status-pending"
+        }[status] || "status-other";
+
+        card.appendChild(
+          adminElement("span", status, `tag ${statusClass}`)
         );
 
         if (request.status === "PENDING") {
