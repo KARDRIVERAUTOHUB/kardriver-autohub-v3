@@ -52,7 +52,7 @@ window.loadAdminDashboard = async function() {
       );
     } else {
       data.requests.forEach(request => {
-        const card = adminElement("div", null, "item");
+        const card = adminElement("div", null, "admin-request-card");
 
         card.appendChild(
           adminElement("strong", request.requestedRole || "-")
@@ -103,7 +103,7 @@ window.loadAdminDashboard = async function() {
       );
     } else {
       data.users.forEach(user => {
-        const card = adminElement("div", null, "item");
+        const card = adminElement("div", null, "admin-user-card");
         const roles = Array.isArray(user.roles) ? user.roles : [];
 
         card.appendChild(

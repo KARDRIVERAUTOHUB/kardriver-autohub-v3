@@ -295,3 +295,75 @@ body.auth-locked #authPage {
   display: flex !important;
 }
 
+
+/* KARDRIVER ADMIN - COMPACT TRON DESIGN */
+.admin-request-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px 9px;
+  padding: 11px 13px !important;
+  margin: 8px 0 !important;
+  border: 1px solid #17658b;
+  border-radius: 11px;
+  background: linear-gradient(120deg, #0b2033, #071421);
+  box-shadow: 0 0 9px #22d3ee18;
+}
+
+.admin-request-card > strong {
+  font-size: 14px;
+  color: #e8faff;
+}
+
+.admin-request-card > .tag {
+  justify-self: end;
+  font-size: 10px;
+  padding: 4px 8px;
+}
+
+.admin-request-card > p {
+  grid-column: 1 / -1;
+  margin: 0 !important;
+  font-size: 10px !important;
+  color: #8eafc5;
+  overflow-wrap: anywhere;
+}
+
+.admin-request-card > div {
+  grid-column: 1 / -1;
+  margin-top: 5px !important;
+  gap: 8px !important;
+}
+
+.admin-request-card .action {
+  flex: 1;
+  width: auto;
+  min-height: 36px;
+  padding: 7px 9px;
+  margin: 0;
+  font-size: 11px;
+  border-radius: 8px;
+}
+
+.admin-user-card {
+  padding: 11px 13px !important;
+  margin: 8px 0 !important;
+  border: 1px solid #17658b;
+  border-radius: 11px;
+  background: #0b2033;
+}
+
+.admin-user-card > strong {
+  font-size: 14px;
+}
+
+.admin-user-card > p {
+  margin: 5px 0 !important;
+  font-size: 11px !important;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-card > .tag {
+  font-size: 10px;
+  padding: 4px 8px;
+}
