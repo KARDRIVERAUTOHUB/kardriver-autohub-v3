@@ -228,10 +228,21 @@ window.firebaseAdminGetDashboardData = async function() {
       ...item.data()
     }));
 
-    const requests = requestsSnapshot.docs.map(item => ({
-      id: item.id,
-      ...item.data()
-    }));
+    const userMap = new Map(
+      users.map(user => [user.uid, user])
+    );
+
+    const requests = requestsSnapshot.docs.map(item => {
+      const request = item.data();
+      const applicant = userMap.get(request.userUid);
+
+      return {
+        id: item.id,
+        ...request,
+        applicantName: applicant?.name || "Nama tidak ditemui",
+        applicantEmail: applicant?.email || ""
+      };
+    });
 
     return {
       users: users,

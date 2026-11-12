@@ -43,8 +43,9 @@ window.loadAdminDashboard = async function() {
     document.getElementById("adminPendingRequests").textContent =
       data.pendingRequests;
 
-    // SENARAI PERMOHONAN ROLE
+    // SENARAI PERMOHONAN ROLE - GRID MINI
     requestList.replaceChildren();
+    requestList.classList.add("admin-request-grid");
 
     if (data.requests.length === 0) {
       requestList.appendChild(
@@ -55,11 +56,11 @@ window.loadAdminDashboard = async function() {
         const card = adminElement("div", null, "admin-request-card");
 
         card.appendChild(
-          adminElement("strong", request.requestedRole || "-")
+          adminElement("strong", request.applicantName || "Nama tidak ditemui")
         );
 
         card.appendChild(
-          adminElement("p", "UID: " + (request.userUid || "-"))
+          adminElement("span", request.requestedRole || "-", "admin-role-label")
         );
 
         card.appendChild(
@@ -67,10 +68,7 @@ window.loadAdminDashboard = async function() {
         );
 
         if (request.status === "PENDING") {
-          const actions = adminElement("div", null);
-          actions.style.display = "flex";
-          actions.style.gap = "10px";
-          actions.style.marginTop = "10px";
+          const actions = adminElement("div", null, "admin-request-actions");
 
           const approve = adminElement("button", "APPROVE", "action");
           const reject = adminElement("button", "REJECT", "action");
