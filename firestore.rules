@@ -8,6 +8,20 @@ service cloud.firestore {
         && request.auth.token.platformAdmin == true;
     }
 
+    function allowedRole(role) {
+      return role in [
+        "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"
+      ];
+    }
+
+    function roleLockPath(uid, role) {
+      return /databases/$(database)/documents/role_request_locks/$(uid + "_" + role);
+    }
+
+    function roleRequestPath(requestId) {
+      return /databases/$(database)/documents/role_requests/$(requestId);
+    }
+
     match /users/{userId} {
       allow read: if (
         request.auth != null
@@ -53,13 +67,21 @@ service cloud.firestore {
     match /role_requests/{requestId} {
       allow create: if request.auth != null
         && request.resource.data.userUid == request.auth.uid
-        && request.resource.data.requestedRole in [
-          "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"
-        ]
+        && allowedRole(request.resource.data.requestedRole)
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([request.resource.data.requestedRole])
         && request.resource.data.status == "PENDING"
         && request.resource.data.keys().hasOnly([
           "userUid", "requestedRole", "status", "createdAt"
-        ]);
+        ])
+        && existsAfter(roleLockPath(
+          request.auth.uid,
+          request.resource.data.requestedRole
+        ))
+        && getAfter(roleLockPath(
+          request.auth.uid,
+          request.resource.data.requestedRole
+        )).data.requestId == requestId;
 
       allow read: if (
         request.auth != null
@@ -70,13 +92,25 @@ service cloud.firestore {
         && resource.data.status == "PENDING"
         && request.resource.data.diff(resource.data)
           .affectedKeys().hasOnly(["status"])
-        && request.resource.data.status in ["APPROVED", "REJECTED"]
         && (
-          request.resource.data.status == "REJECTED"
-          || (
-            !get(
-              /databases/$(database)/documents/users/$(resource.data.userUid)
-            ).data.roles.hasAny([resource.data.requestedRole])
+          (
+            request.resource.data.status == "REJECTED"
+            && !existsAfter(roleLockPath(
+              resource.data.userUid,
+              resource.data.requestedRole
+            ))
+          )
+          ||
+          (
+            request.resource.data.status == "APPROVED"
+            && existsAfter(roleLockPath(
+              resource.data.userUid,
+              resource.data.requestedRole
+            ))
+            && getAfter(roleLockPath(
+              resource.data.userUid,
+              resource.data.requestedRole
+            )).data.status == "APPROVED"
             && getAfter(
               /databases/$(database)/documents/users/$(resource.data.userUid)
             ).data.roles.hasAny([resource.data.requestedRole])
@@ -84,6 +118,56 @@ service cloud.firestore {
         );
 
       allow delete: if false;
+    }
+
+    match /role_request_locks/{lockId} {
+      allow read: if (
+        request.auth != null
+        && resource.data.userUid == request.auth.uid
+      ) || isPlatformAdmin();
+
+      allow create: if request.auth != null
+        && request.resource.data.userUid == request.auth.uid
+        && allowedRole(request.resource.data.requestedRole)
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([request.resource.data.requestedRole])
+        && request.resource.data.status == "PENDING"
+        && request.resource.data.requestId is string
+        && lockId == request.auth.uid + "_" + request.resource.data.requestedRole
+        && request.resource.data.keys().hasOnly([
+          "userUid", "requestedRole", "requestId",
+          "status", "createdAt"
+        ])
+        && existsAfter(roleRequestPath(
+          request.resource.data.requestId
+        ))
+        && getAfter(roleRequestPath(
+          request.resource.data.requestId
+        )).data.userUid == request.auth.uid
+        && getAfter(roleRequestPath(
+          request.resource.data.requestId
+        )).data.requestedRole == request.resource.data.requestedRole
+        && getAfter(roleRequestPath(
+          request.resource.data.requestId
+        )).data.status == "PENDING";
+
+      allow update: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["status"])
+        && request.resource.data.status == "APPROVED"
+        && getAfter(roleRequestPath(
+          resource.data.requestId
+        )).data.status == "APPROVED"
+        && getAfter(
+          /databases/$(database)/documents/users/$(resource.data.userUid)
+        ).data.roles.hasAny([resource.data.requestedRole]);
+
+      allow delete: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && getAfter(roleRequestPath(
+          resource.data.requestId
+        )).data.status == "REJECTED";
     }
   }
 }
