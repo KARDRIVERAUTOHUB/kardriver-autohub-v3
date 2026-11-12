@@ -590,8 +590,9 @@ body.theme-admin .navbtn.active {
   border: none;
   color: #22d3ee;
   font-weight: bold;
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
   cursor: pointer;
   text-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
   transition: 0.25s ease;
