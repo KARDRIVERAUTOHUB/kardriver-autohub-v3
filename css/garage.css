@@ -367,3 +367,75 @@ body.auth-locked #authPage {
   font-size: 10px;
   padding: 4px 8px;
 }
+
+/* ADMIN COMPACT MOBILE V2 */
+.admin-request-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 5px 8px !important;
+  padding: 9px 11px !important;
+  margin: 6px 0 !important;
+  min-width: 0;
+}
+
+.admin-request-card > strong {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+}
+
+.admin-request-card > .tag {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  font-size: 10px !important;
+  padding: 3px 7px !important;
+}
+
+.admin-request-card > p {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0 !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  overflow-wrap: anywhere;
+}
+
+.admin-request-card > div {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  gap: 7px !important;
+  margin-top: 3px !important;
+}
+
+.admin-request-card .action {
+  flex: 1;
+  min-height: 32px !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  font-size: 10px !important;
+}
+
+.admin-user-card {
+  padding: 9px 11px !important;
+  margin: 6px 0 !important;
+}
+
+.admin-user-card > strong {
+  font-size: 13px !important;
+}
+
+.admin-user-card > p {
+  margin: 3px 0 !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-card > .tag {
+  font-size: 10px !important;
+  padding: 3px 7px !important;
+}
