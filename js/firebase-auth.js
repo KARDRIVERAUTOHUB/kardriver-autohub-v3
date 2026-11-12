@@ -15,13 +15,9 @@ import {
   setDoc,
   getDoc,
   collection,
-  addDoc,
   getDocs,
-  query,
-  where,
-  writeBatch,
-  arrayUnion,
-  serverTimestamp
+  serverTimestamp,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -271,52 +267,85 @@ window.firebaseAdminReviewRoleRequest = async function(requestId, decision) {
 
     const allowedRoles = ["DRIVER", "MECHANIC", "WORKSHOP", "FLEET"];
     const requestRef = doc(db, "role_requests", requestId);
-    const requestSnapshot = await getDoc(requestRef);
 
-    if (!requestSnapshot.exists()) {
-      throw new Error("Permohonan tidak ditemui.");
-    }
+    await runTransaction(db, async transaction => {
+      const requestSnapshot = await transaction.get(requestRef);
 
-    const requestData = requestSnapshot.data();
+      if (!requestSnapshot.exists()) {
+        throw new Error("Permohonan tidak ditemui.");
+      }
 
-    if (requestData.status !== "PENDING") {
-      throw new Error("Permohonan ini sudah diproses.");
-    }
+      const requestData = requestSnapshot.data();
 
-    if (!allowedRoles.includes(requestData.requestedRole)) {
-      throw new Error("Role permohonan tidak sah.");
-    }
+      if (requestData.status !== "PENDING") {
+        throw new Error("Permohonan ini sudah diproses.");
+      }
 
-    const batch = writeBatch(db);
+      if (!allowedRoles.includes(requestData.requestedRole)) {
+        throw new Error("Role permohonan tidak sah.");
+      }
 
-    if (decision === "APPROVED") {
       if (!requestData.userUid) {
         throw new Error("UID pengguna tidak sah.");
       }
 
       const userRef = doc(db, "users", requestData.userUid);
-      const userSnapshot = await getDoc(userRef);
+      const lockRef = doc(
+        db,
+        "role_request_locks",
+        requestData.userUid + "_" + requestData.requestedRole
+      );
 
-      if (!userSnapshot.exists()) {
-        throw new Error("Profil pengguna tidak ditemui.");
+      const lockSnapshot = await transaction.get(lockRef);
+
+      if (!lockSnapshot.exists()) {
+        throw new Error("Role lock tidak ditemui. Permohonan perlu disemak.");
       }
 
-      const roles = userSnapshot.data().roles || [];
+      const lockData = lockSnapshot.data();
 
-      if (roles.includes(requestData.requestedRole)) {
-        throw new Error("Pengguna sudah mempunyai role ini.");
+      if (
+        lockData.requestId !== requestId ||
+        lockData.userUid !== requestData.userUid ||
+        lockData.requestedRole !== requestData.requestedRole ||
+        lockData.status !== "PENDING"
+      ) {
+        throw new Error("Role lock tidak sepadan dengan permohonan.");
       }
 
-      batch.update(userRef, {
-        roles: arrayUnion(requestData.requestedRole)
+      let roles = [];
+
+      if (decision === "APPROVED") {
+        const userSnapshot = await transaction.get(userRef);
+
+        if (!userSnapshot.exists()) {
+          throw new Error("Profil pengguna tidak ditemui.");
+        }
+
+        roles = userSnapshot.data().roles || [];
+
+        if (roles.includes(requestData.requestedRole)) {
+          throw new Error("Pengguna sudah mempunyai role ini.");
+        }
+      }
+
+      // Semua bacaan selesai sebelum transaksi membuat perubahan.
+      if (decision === "APPROVED") {
+        transaction.update(userRef, {
+          roles: [...roles, requestData.requestedRole]
+        });
+
+        transaction.update(lockRef, {
+          status: "APPROVED"
+        });
+      } else {
+        transaction.delete(lockRef);
+      }
+
+      transaction.update(requestRef, {
+        status: decision
       });
-    }
-
-    batch.update(requestRef, {
-      status: decision
     });
-
-    await batch.commit();
 
     return {
       success: true,
@@ -341,45 +370,61 @@ window.firebaseSubmitRoleRequest = async function(requestedRole) {
       throw new Error("Peranan yang dipilih tidak sah.");
     }
 
-    // Semak role yang sudah dimiliki
     const userRef = doc(db, "users", user.uid);
-    const userSnapshot = await getDoc(userRef);
-
-    if (!userSnapshot.exists()) {
-      throw new Error("Profil pengguna tidak ditemui.");
-    }
-
-    const roles = userSnapshot.data().roles || [];
-
-    if (roles.includes(requestedRole)) {
-      throw new Error("Anda sudah mempunyai role " + requestedRole + ".");
-    }
-
-    // Semak permohonan yang masih PENDING
-    const ownRequestsQuery = query(
-      collection(db, "role_requests"),
-      where("userUid", "==", user.uid)
+    const requestRef = doc(collection(db, "role_requests"));
+    const lockRef = doc(
+      db,
+      "role_request_locks",
+      user.uid + "_" + requestedRole
     );
 
-    const requestsSnapshot = await getDocs(ownRequestsQuery);
+    await runTransaction(db, async transaction => {
+      const userSnapshot = await transaction.get(userRef);
+      const lockSnapshot = await transaction.get(lockRef);
 
-    const duplicate = requestsSnapshot.docs.some(item => {
-      const data = item.data();
-      return data.userUid === user.uid
-        && data.requestedRole === requestedRole
-        && data.status === "PENDING";
-    });
+      if (!userSnapshot.exists()) {
+        throw new Error("Profil pengguna tidak ditemui.");
+      }
 
-    if (duplicate) {
-      throw new Error("Permohonan " + requestedRole + " anda masih menunggu kelulusan Admin.");
-    }
+      const roles = userSnapshot.data().roles || [];
 
-    // Hantar permohonan baharu
-    await addDoc(collection(db, "role_requests"), {
-      userUid: user.uid,
-      requestedRole: requestedRole,
-      status: "PENDING",
-      createdAt: serverTimestamp()
+      if (roles.includes(requestedRole)) {
+        throw new Error("Anda sudah mempunyai role " + requestedRole + ".");
+      }
+
+      if (lockSnapshot.exists()) {
+        const lockData = lockSnapshot.data();
+
+        if (lockData.status === "PENDING") {
+          throw new Error(
+            "Permohonan " + requestedRole +
+            " anda masih menunggu kelulusan Admin."
+          );
+        }
+
+        if (lockData.status === "APPROVED") {
+          throw new Error("Anda sudah mempunyai permohonan yang diluluskan untuk role ini.");
+        }
+
+        throw new Error("Role lock masih wujud. Sila hubungi Admin.");
+      }
+
+      const requestData = {
+        userUid: user.uid,
+        requestedRole: requestedRole,
+        status: "PENDING",
+        createdAt: serverTimestamp()
+      };
+
+      transaction.set(requestRef, requestData);
+
+      transaction.set(lockRef, {
+        userUid: user.uid,
+        requestedRole: requestedRole,
+        requestId: requestRef.id,
+        status: "PENDING",
+        createdAt: serverTimestamp()
+      });
     });
 
     alert("Permohonan " + requestedRole + " berjaya dihantar.");

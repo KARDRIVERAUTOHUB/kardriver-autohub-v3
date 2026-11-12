@@ -1,3 +1,23 @@
+// KARDRIVER AUTOHUB V3 - DYNAMIC ROLE THEME
+window.applyRoleTheme = function(role) {
+  const themes = {
+    DRIVER: "theme-driver",
+    MECHANIC: "theme-mechanic",
+    OWNER: "theme-owner",
+    ADMIN: "theme-admin"
+  };
+
+  document.body.classList.remove(
+    "theme-driver",
+    "theme-mechanic",
+    "theme-owner",
+    "theme-admin"
+  );
+
+  const theme = themes[String(role || "").toUpperCase()];
+  if (theme) document.body.classList.add(theme);
+};
+
 // KARDRIVER AUTOHUB V3 - USER PROFILE
 
 window.renderUserProfile = function() {
@@ -76,6 +96,7 @@ window.renderRoleSwitcher = async function() {
   if (!profile) return;
 
   activeDisplay.textContent = profile.activeRole;
+  window.applyRoleTheme(profile.activeRole);
 
   container.innerHTML = "";
 
@@ -92,6 +113,7 @@ window.renderRoleSwitcher = async function() {
       const success = await window.firebaseSetActiveRole(role);
 
       if (success) {
+        window.applyRoleTheme(role);
         alert("Role aktif ditukar kepada " + role);
         await window.renderRoleSwitcher();
       }

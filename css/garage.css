@@ -472,3 +472,109 @@ body.auth-locked #authPage {
   background: #713f12 !important;
   border: 1px solid #eab308 !important;
 }
+
+/* KARDRIVER AUTOHUB V3 - DYNAMIC ROLE THEMES */
+body.theme-driver {
+  --role-accent: #38bdf8;
+  --role-glow: rgba(56, 189, 248, 0.22);
+  --role-border: #0284c7;
+}
+
+body.theme-mechanic {
+  --role-accent: #c084fc;
+  --role-glow: rgba(192, 132, 252, 0.22);
+  --role-border: #9333ea;
+}
+
+body.theme-owner {
+  --role-accent: #4ade80;
+  --role-glow: rgba(74, 222, 128, 0.22);
+  --role-border: #15803d;
+}
+
+body.theme-admin {
+  --role-accent: #fbbf24;
+  --role-glow: rgba(251, 191, 36, 0.22);
+  --role-border: #d97706;
+}
+
+/* Apply active role accent across application */
+body.theme-driver .card,
+body.theme-mechanic .card,
+body.theme-owner .card,
+body.theme-admin .card,
+body.theme-driver .stat,
+body.theme-mechanic .stat,
+body.theme-owner .stat,
+body.theme-admin .stat {
+  border-color: var(--role-border);
+  box-shadow: 0 0 12px var(--role-glow);
+}
+
+body.theme-driver .action,
+body.theme-mechanic .action,
+body.theme-owner .action,
+body.theme-admin .action,
+body.theme-driver .navbtn.active,
+body.theme-mechanic .navbtn.active,
+body.theme-owner .navbtn.active,
+body.theme-admin .navbtn.active {
+  border-color: var(--role-border);
+  color: var(--role-accent);
+  box-shadow: 0 0 8px var(--role-glow);
+}
+
+body.theme-driver h1,
+body.theme-driver h2,
+body.theme-driver h3,
+body.theme-mechanic h1,
+body.theme-mechanic h2,
+body.theme-mechanic h3,
+body.theme-owner h1,
+body.theme-owner h2,
+body.theme-owner h3,
+body.theme-admin h1,
+body.theme-admin h2,
+body.theme-admin h3 {
+  text-shadow: 0 0 8px var(--role-glow);
+}
+
+body.theme-driver .section-title,
+body.theme-mechanic .section-title,
+body.theme-owner .section-title,
+body.theme-admin .section-title {
+  color: var(--role-accent);
+}
+
+/* DYNAMIC ROLE THEME - PRIORITY OVERRIDE */
+body.theme-driver .card,
+body.theme-driver .stat {
+  border-color: var(--role-border) !important;
+  box-shadow: 0 0 12px var(--role-glow) !important;
+}
+
+body.theme-mechanic .card,
+body.theme-mechanic .stat {
+  border-color: var(--role-border) !important;
+  box-shadow: 0 0 12px var(--role-glow) !important;
+}
+
+body.theme-owner .card,
+body.theme-owner .stat {
+  border-color: var(--role-border) !important;
+  box-shadow: 0 0 12px var(--role-glow) !important;
+}
+
+body.theme-admin .card,
+body.theme-admin .stat {
+  border-color: var(--role-border) !important;
+  box-shadow: 0 0 12px var(--role-glow) !important;
+}
+
+body.theme-driver .navbtn.active,
+body.theme-mechanic .navbtn.active,
+body.theme-owner .navbtn.active,
+body.theme-admin .navbtn.active {
+  border-color: var(--role-border) !important;
+  color: var(--role-accent) !important;
+}

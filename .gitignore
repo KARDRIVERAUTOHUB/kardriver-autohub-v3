@@ -32,3 +32,15 @@ set-platform-admin.cjs
 package.json
 package-lock.json
 node_modules/
+
+# Firebase Emulator temporary logs
+firestore-debug.log
+ui-debug.log
+
+# KARDRIVER AUTOHUB - Local backups and security tests
+*.bak
+*.pre-role-lock.bak
+*.pre-transaction.bak
+test-*.cjs
+firebase.role-lock.json
+firestore.role-lock.rules
