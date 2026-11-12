@@ -1,13 +1,35 @@
 // KARDRIVER AUTOHUB V3 - AUTH SYSTEM
 
 function showLogin() {
-  document.getElementById("loginPanel").style.display = "block";
-  document.getElementById("registerPanel").style.display = "none";
+  const loginPanel = document.getElementById("loginPanel");
+  const registerPanel = document.getElementById("registerPanel");
+
+  if (!loginPanel || !registerPanel) {
+    console.error("Login/Register panel tidak dijumpai.");
+    return;
+  }
+
+  loginPanel.classList.remove("hidden");
+  registerPanel.classList.add("hidden");
+
+  loginPanel.style.display = "block";
+  registerPanel.style.display = "none";
 }
 
 function showRegister() {
-  document.getElementById("loginPanel").style.display = "none";
-  document.getElementById("registerPanel").style.display = "block";
+  const loginPanel = document.getElementById("loginPanel");
+  const registerPanel = document.getElementById("registerPanel");
+
+  if (!loginPanel || !registerPanel) {
+    console.error("Login/Register panel tidak dijumpai.");
+    return;
+  }
+
+  loginPanel.classList.add("hidden");
+  registerPanel.classList.remove("hidden");
+
+  loginPanel.style.display = "none";
+  registerPanel.style.display = "block";
 }
 
 async function handleLogin(event) {
