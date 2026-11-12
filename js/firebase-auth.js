@@ -16,6 +16,11 @@ import {
   getDoc,
   collection,
   addDoc,
+  getDocs,
+  query,
+  where,
+  writeBatch,
+  arrayUnion,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
@@ -106,6 +111,21 @@ window.getFirebaseUser = function() {
   return auth.currentUser;
 };
 
+// PENGESAHAN PLATFORM ADMIN
+window.firebaseIsPlatformAdmin = async function(forceRefresh = false) {
+  try {
+    const user = auth.currentUser;
+    if (!user) return false;
+
+    const tokenResult = await user.getIdTokenResult(forceRefresh);
+    return tokenResult.claims.platformAdmin === true;
+  } catch (error) {
+    console.error("Admin verification failed:", error);
+    return false;
+  }
+};
+
+
 // Baca senarai role pengguna daripada Firestore
 window.firebaseGetUserRoles = async function() {
   try {
@@ -192,6 +212,112 @@ window.firebaseResetPassword = async function() {
   }
 };
 
+// ADMIN: BACA DATA DASHBOARD
+window.firebaseAdminGetDashboardData = async function() {
+  try {
+    const isAdmin = await window.firebaseIsPlatformAdmin(true);
+    if (!isAdmin) throw new Error("Akses Platform Admin ditolak.");
+
+    const [usersSnapshot, requestsSnapshot] = await Promise.all([
+      getDocs(collection(db, "users")),
+      getDocs(collection(db, "role_requests"))
+    ]);
+
+    const users = usersSnapshot.docs.map(item => ({
+      uid: item.id,
+      ...item.data()
+    }));
+
+    const requests = requestsSnapshot.docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
+
+    return {
+      users: users,
+      requests: requests,
+      totalUsers: users.length,
+      pendingRequests: requests.filter(
+        item => item.status === "PENDING"
+      ).length
+    };
+  } catch (error) {
+    console.error("Admin dashboard read failed:", error);
+    throw error;
+  }
+};
+
+
+// ADMIN: LULUSKAN ATAU TOLAK PERMOHONAN ROLE
+window.firebaseAdminReviewRoleRequest = async function(requestId, decision) {
+  try {
+    const isAdmin = await window.firebaseIsPlatformAdmin(true);
+    if (!isAdmin) throw new Error("Akses Platform Admin ditolak.");
+
+    if (!requestId || !["APPROVED", "REJECTED"].includes(decision)) {
+      throw new Error("Maklumat permohonan tidak sah.");
+    }
+
+    const allowedRoles = ["DRIVER", "MECHANIC", "WORKSHOP", "FLEET"];
+    const requestRef = doc(db, "role_requests", requestId);
+    const requestSnapshot = await getDoc(requestRef);
+
+    if (!requestSnapshot.exists()) {
+      throw new Error("Permohonan tidak ditemui.");
+    }
+
+    const requestData = requestSnapshot.data();
+
+    if (requestData.status !== "PENDING") {
+      throw new Error("Permohonan ini sudah diproses.");
+    }
+
+    if (!allowedRoles.includes(requestData.requestedRole)) {
+      throw new Error("Role permohonan tidak sah.");
+    }
+
+    const batch = writeBatch(db);
+
+    if (decision === "APPROVED") {
+      if (!requestData.userUid) {
+        throw new Error("UID pengguna tidak sah.");
+      }
+
+      const userRef = doc(db, "users", requestData.userUid);
+      const userSnapshot = await getDoc(userRef);
+
+      if (!userSnapshot.exists()) {
+        throw new Error("Profil pengguna tidak ditemui.");
+      }
+
+      const roles = userSnapshot.data().roles || [];
+
+      if (roles.includes(requestData.requestedRole)) {
+        throw new Error("Pengguna sudah mempunyai role ini.");
+      }
+
+      batch.update(userRef, {
+        roles: arrayUnion(requestData.requestedRole)
+      });
+    }
+
+    batch.update(requestRef, {
+      status: decision
+    });
+
+    await batch.commit();
+
+    return {
+      success: true,
+      status: decision
+    };
+
+  } catch (error) {
+    console.error("Admin role review failed:", error);
+    throw error;
+  }
+};
+
 // Hantar permohonan peranan tambahan
 window.firebaseSubmitRoleRequest = async function(requestedRole) {
   try {
@@ -204,6 +330,40 @@ window.firebaseSubmitRoleRequest = async function(requestedRole) {
       throw new Error("Peranan yang dipilih tidak sah.");
     }
 
+    // Semak role yang sudah dimiliki
+    const userRef = doc(db, "users", user.uid);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+      throw new Error("Profil pengguna tidak ditemui.");
+    }
+
+    const roles = userSnapshot.data().roles || [];
+
+    if (roles.includes(requestedRole)) {
+      throw new Error("Anda sudah mempunyai role " + requestedRole + ".");
+    }
+
+    // Semak permohonan yang masih PENDING
+    const ownRequestsQuery = query(
+      collection(db, "role_requests"),
+      where("userUid", "==", user.uid)
+    );
+
+    const requestsSnapshot = await getDocs(ownRequestsQuery);
+
+    const duplicate = requestsSnapshot.docs.some(item => {
+      const data = item.data();
+      return data.userUid === user.uid
+        && data.requestedRole === requestedRole
+        && data.status === "PENDING";
+    });
+
+    if (duplicate) {
+      throw new Error("Permohonan " + requestedRole + " anda masih menunggu kelulusan Admin.");
+    }
+
+    // Hantar permohonan baharu
     await addDoc(collection(db, "role_requests"), {
       userUid: user.uid,
       requestedRole: requestedRole,
@@ -211,7 +371,9 @@ window.firebaseSubmitRoleRequest = async function(requestedRole) {
       createdAt: serverTimestamp()
     });
 
+    alert("Permohonan " + requestedRole + " berjaya dihantar.");
     return true;
+
   } catch (error) {
     console.error("Gagal menghantar permohonan role:", error);
     alert("Permohonan gagal: " + error.message);
@@ -219,13 +381,37 @@ window.firebaseSubmitRoleRequest = async function(requestedRole) {
   }
 };
 
+// Paparkan menu Admin hanya selepas pengesahan Custom Claim
+window.refreshAdminMenu = async function(user) {
+  const button = document.getElementById("adminMenuButton");
+  if (!button) return;
+
+  button.classList.add("hidden");
+
+  if (!user || !window.firebaseIsPlatformAdmin) return;
+
+  try {
+    const isAdmin = await window.firebaseIsPlatformAdmin(true);
+    button.classList.toggle("hidden", !isAdmin);
+    console.log("Platform Admin access:", isAdmin);
+  } catch (error) {
+    button.classList.add("hidden");
+    console.error("Admin menu verification failed:", error);
+  }
+};
+
 // Pantau status akaun
-onAuthStateChanged(auth, function(user) {
+onAuthStateChanged(auth, async function(user) {
   if (user) {
     if (typeof window.unlockApp === "function") {
       window.unlockApp(user);
     }
+
+    await window.refreshAdminMenu(user);
   } else {
+    const button = document.getElementById("adminMenuButton");
+    if (button) button.classList.add("hidden");
+
     document.body.classList.add("auth-locked");
     document.getElementById("authPage").classList.remove("hidden");
 

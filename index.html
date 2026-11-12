@@ -402,6 +402,42 @@ body{padding-bottom:90px;}
   <button class="action" onclick="logoutUser()" style="background:#8b1e2d;border:1px solid #ff5268;margin-top:15px;">LOGOUT / KELUAR AKAUN</button>
  </div>
 </section>
+
+<section id="adminPage" class="hidden">
+ <div class="profile-intro">
+  <h1>ADMIN CONTROL CENTER</h1>
+  <p>Platform administration · KARDRIVER AUTOHUB</p>
+  <span class="tag">PLATFORM ADMIN</span>
+ </div>
+
+ <div class="card">
+  <h3>SYSTEM OVERVIEW</h3>
+  <div class="dashboard-grid">
+   <div class="stat">
+    <strong id="adminTotalUsers">0</strong>
+    <span>TOTAL USERS</span>
+   </div>
+   <div class="stat">
+    <strong id="adminPendingRequests">0</strong>
+    <span>PENDING REQUESTS</span>
+   </div>
+  </div>
+ </div>
+
+ <div class="card">
+  <h3>ROLE REQUEST MANAGEMENT</h3>
+  <p id="adminRequestStatus">Memeriksa akses Admin...</p>
+  <div id="adminRequestList"></div>
+ </div>
+
+ <div class="card">
+  <h3>USER MANAGEMENT</h3>
+  <div id="adminUserList">Menunggu pengesahan Admin.</div>
+ </div>
+
+ <button class="action" onclick="go('home')">KEMBALI KE HOME</button>
+</section>
+
 </main>
 
 <div id="moreMenu" class="more-menu hidden">
@@ -411,6 +447,7 @@ body{padding-bottom:90px;}
   <button onclick="go('dtc');closeMore()"><b>⌕</b>DTC DATABASE</button>
   <button onclick="go('quiz');closeMore()"><b>✓</b>QUIZ</button>
   <button onclick="go('profile');closeMore()"><b>♙</b>PROFILE</button>
+  <button id="adminMenuButton" class="hidden" onclick="window.openAdminControlCenter();closeMore()"><b>⚙</b>ADMIN</button>
  </div>
 </div>
 <nav class="smart-nav">
@@ -1319,5 +1356,6 @@ function checkSensorQuiz(){
 <script src="js/auth.js"></script>
 <script type="module" src="js/firebase-auth.js"></script>
 <script src="js/profile.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>

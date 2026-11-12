@@ -26,3 +26,9 @@ node_modules/
 index_NAV_V2_STABLE.html
 index_backup*.html
 assets/images/assets/
+
+# Server-side Firebase Admin SDK - jangan terbitkan di GitHub Pages
+set-platform-admin.cjs
+package.json
+package-lock.json
+node_modules/
