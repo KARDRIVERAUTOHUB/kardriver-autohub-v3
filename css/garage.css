@@ -296,173 +296,33 @@ body.auth-locked #authPage {
 }
 
 
-/* KARDRIVER ADMIN - COMPACT TRON DESIGN */
-.admin-request-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 5px 9px;
-  padding: 11px 13px !important;
-  margin: 8px 0 !important;
-  border: 1px solid #17658b;
-  border-radius: 11px;
-  background: linear-gradient(120deg, #0b2033, #071421);
-  box-shadow: 0 0 9px #22d3ee18;
-}
-
-.admin-request-card > strong {
-  font-size: 14px;
-  color: #e8faff;
-}
-
-.admin-request-card > .tag {
-  justify-self: end;
-  font-size: 10px;
-  padding: 4px 8px;
-}
-
-.admin-request-card > p {
-  grid-column: 1 / -1;
-  margin: 0 !important;
-  font-size: 10px !important;
-  color: #8eafc5;
-  overflow-wrap: anywhere;
-}
-
-.admin-request-card > div {
-  grid-column: 1 / -1;
-  margin-top: 5px !important;
-  gap: 8px !important;
-}
-
-.admin-request-card .action {
-  flex: 1;
-  width: auto;
-  min-height: 36px;
-  padding: 7px 9px;
-  margin: 0;
-  font-size: 11px;
-  border-radius: 8px;
-}
-
-.admin-user-card {
-  padding: 11px 13px !important;
-  margin: 8px 0 !important;
-  border: 1px solid #17658b;
-  border-radius: 11px;
-  background: #0b2033;
-}
-
-.admin-user-card > strong {
-  font-size: 14px;
-}
-
-.admin-user-card > p {
-  margin: 5px 0 !important;
-  font-size: 11px !important;
-  overflow-wrap: anywhere;
-}
-
-.admin-user-card > .tag {
-  font-size: 10px;
-  padding: 4px 8px;
-}
-
-/* ADMIN COMPACT MOBILE V2 */
-.admin-request-card {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  align-items: center !important;
-  gap: 5px 8px !important;
-  padding: 9px 11px !important;
-  margin: 6px 0 !important;
-  min-width: 0;
-}
-
-.admin-request-card > strong {
-  grid-column: 1;
-  grid-row: 1;
-  font-size: 14px !important;
-  line-height: 1.2 !important;
-}
-
-.admin-request-card > .tag {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  font-size: 10px !important;
-  padding: 3px 7px !important;
-}
-
-.admin-request-card > p {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  margin: 0 !important;
-  font-size: 10px !important;
-  line-height: 1.4 !important;
-  overflow-wrap: anywhere;
-}
-
-.admin-request-card > div {
-  grid-column: 1 / -1;
-  grid-row: 3;
-  display: flex;
-  gap: 7px !important;
-  margin-top: 3px !important;
-}
-
-.admin-request-card .action {
-  flex: 1;
-  min-height: 32px !important;
-  padding: 6px !important;
-  margin: 0 !important;
-  font-size: 10px !important;
-}
-
-.admin-user-card {
-  padding: 9px 11px !important;
-  margin: 6px 0 !important;
-}
-
-.admin-user-card > strong {
-  font-size: 13px !important;
-}
-
-.admin-user-card > p {
-  margin: 3px 0 !important;
-  font-size: 10px !important;
-  line-height: 1.4 !important;
-  overflow-wrap: anywhere;
-}
-
-.admin-user-card > .tag {
-  font-size: 10px !important;
-  padding: 3px 7px !important;
-}
-
-/* ADMIN REQUEST GRID - 3 COLUMNS */
+/* KARDRIVER ADMIN - THREE COLUMN GRID */
 .admin-request-grid {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 8px !important;
   align-items: stretch;
+  width: 100%;
 }
 
 .admin-request-grid .admin-request-card {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
-  justify-content: flex-start;
+  gap: 6px !important;
   min-width: 0;
   padding: 9px 7px !important;
   margin: 0 !important;
-  gap: 6px !important;
+  border: 1px solid #17658b;
   border-radius: 10px;
+  background: linear-gradient(120deg, #0b2033, #071421);
+  box-shadow: 0 0 9px #22d3ee18;
 }
 
 .admin-request-card > strong {
   font-size: 12px !important;
-  line-height: 1.3 !important;
+  color: #e8faff;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
@@ -479,11 +339,11 @@ body.auth-locked #authPage {
 }
 
 .admin-request-card > p {
-  display: none;
+  display: none !important;
 }
 
 .admin-request-card > .admin-request-actions {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 5px !important;
   margin: 2px 0 0 !important;
@@ -491,8 +351,34 @@ body.auth-locked #authPage {
 
 .admin-request-card .action {
   width: 100%;
+  min-width: 0;
   min-height: 29px !important;
   padding: 5px 2px !important;
+  margin: 0 !important;
   font-size: 9px !important;
   white-space: normal;
+}
+
+.admin-user-card {
+  padding: 9px 11px !important;
+  margin: 6px 0 !important;
+  border: 1px solid #17658b;
+  border-radius: 10px;
+  background: #0b2033;
+}
+
+.admin-user-card > strong {
+  font-size: 13px !important;
+}
+
+.admin-user-card > p {
+  margin: 3px 0 !important;
+  font-size: 10px !important;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-card > .tag {
+  font-size: 10px !important;
+  padding: 3px 7px !important;
 }
