@@ -429,3 +429,46 @@ body.auth-locked #authPage {
 .admin-request-card > .tag.status-other {
   color: #cbd5e1 !important;
 }
+
+/* KARDRIVER FORCE ROLE AND STATUS COLORS */
+.admin-request-grid .admin-request-card .admin-role-label.role-driver {
+  color: #38bdf8 !important;
+  background: #082f49 !important;
+  border: 1px solid #0284c7 !important;
+}
+
+.admin-request-grid .admin-request-card .admin-role-label.role-mechanic {
+  color: #c084fc !important;
+  background: #3b0764 !important;
+  border: 1px solid #9333ea !important;
+}
+
+.admin-request-grid .admin-request-card .admin-role-label.role-owner {
+  color: #4ade80 !important;
+  background: #052e16 !important;
+  border: 1px solid #15803d !important;
+}
+
+.admin-request-grid .admin-request-card .admin-role-label.role-admin {
+  color: #fbbf24 !important;
+  background: #451a03 !important;
+  border: 1px solid #d97706 !important;
+}
+
+.admin-request-grid .admin-request-card .tag.status-approved {
+  color: #4ade80 !important;
+  background: #14532d !important;
+  border: 1px solid #22c55e !important;
+}
+
+.admin-request-grid .admin-request-card .tag.status-rejected {
+  color: #f87171 !important;
+  background: #7f1d1d !important;
+  border: 1px solid #ef4444 !important;
+}
+
+.admin-request-grid .admin-request-card .tag.status-pending {
+  color: #facc15 !important;
+  background: #713f12 !important;
+  border: 1px solid #eab308 !important;
+}
