@@ -1446,7 +1446,7 @@ function renderAiHistory(){
  const box=document.getElementById("aiHistoryList");
  if(!box)return;
  const items=aiGetHistory();
- box.innerHTML=items.length?items.map((x,i)=>`<div class="ai-history-item"><strong>${aiEscape(x.code)} — ${aiEscape(x.vehicle)}</strong><p>${aiEscape(x.name||"Kod tidak dijumpai")}</p><span class="ai-muted">${aiEscape(x.date)}</span> <button type="button" class="action" onclick="loadAiHistory(${i})">BUKA / OPEN</button></div>`).join(""):"Belum ada rekod diagnosis.";
+ box.innerHTML=items.length?items.map((x,i)=>`<div class="ai-history-item"><strong>${aiEscape(x.code)} — ${aiEscape(x.vehicle)}</strong><p>${aiEscape(x.name||"Kod tidak dijumpai")}</p><span class="ai-muted">${aiEscape(x.date)}</span> <button type="button" class="action" onclick="loadAiHistory(${i})">LIHAT DIAGNOSIS / VIEW DIAGNOSIS</button></div>`).join(""):"Belum ada rekod diagnosis.";
 }
 function aiFindDtc(){
  const code=document.getElementById("aiDtcCode").value.trim().toUpperCase();
