@@ -469,6 +469,64 @@ body{padding-bottom:90px;}
  <button class="action" onclick="go('home')">KEMBALI KE HOME</button>
 </section>
 
+
+<style>
+#aiMechanicPage .ai-wrap{display:grid;grid-template-columns:1fr 1.35fr;gap:14px}
+#aiMechanicPage .ai-panel{background:#0c1d30;border:1px solid #16749a;border-radius:13px;padding:15px;margin:10px 0}
+#aiMechanicPage .ai-field{margin:12px 0}
+#aiMechanicPage label{display:block;color:#bcefff;font-size:13px;margin-bottom:6px}
+#aiMechanicPage input,#aiMechanicPage select,#aiMechanicPage textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #16749a;background:#071421;color:white;border-radius:8px;font-size:15px}
+#aiMechanicPage textarea{min-height:95px;resize:vertical}
+#aiMechanicPage .ai-grid3{display:grid;grid-template-columns:1fr 1fr  .7fr;gap:8px}
+#aiMechanicPage .ai-result{border:1px solid #16749a;background:#102940;border-radius:10px;padding:13px;margin:10px 0}
+#aiMechanicPage .ai-result h3{color:#22d3ee;margin:4px 0 10px}
+#aiMechanicPage .ai-history-item{border-bottom:1px solid #164c70;padding:10px 2px}
+#aiMechanicPage .ai-risk{display:inline-block;padding:5px 10px;border-radius:7px;background:#76551b;color:#ffe08a;font-weight:bold}
+#aiMechanicPage .ai-muted{color:#a9c4d7;font-size:12px;line-height:1.5}
+@media(max-width:700px){#aiMechanicPage .ai-wrap{grid-template-columns:1fr}#aiMechanicPage .ai-grid3{grid-template-columns:1fr 1fr}#aiMechanicPage .ai-grid3 .ai-year{grid-column:1/-1}}
+</style>
+<section id="aiMechanicPage" class="hidden">
+ <div class="profile-intro">
+  <h1>🤖 AI MECHANIC</h1>
+  <p>Diagnosis Assistant / Pembantu Diagnosis Kenderaan</p>
+  <span class="tag">BETA · KARDRIVER AUTOHUB</span>
+ </div>
+ <div class="ai-wrap">
+  <div>
+   <div class="ai-panel">
+    <h3>1. MAKLUMAT KENDERAAN / VEHICLE INFORMATION</h3>
+    <div class="ai-grid3">
+     <div class="ai-field"><label for="aiBrand">Jenama / Brand</label><input id="aiBrand" placeholder="Contoh: Proton"></div>
+     <div class="ai-field"><label for="aiModel">Model</label><input id="aiModel" placeholder="Contoh: Saga"></div>
+     <div class="ai-field ai-year"><label for="aiYear">Tahun / Year</label><input id="aiYear" type="number" min="1950" max="2035" placeholder="2022"></div>
+    </div>
+    <div class="ai-field">
+     <label for="aiDtcCode">Kod kerosakan / Fault Code (DTC)</label>
+     <input id="aiDtcCode" placeholder="Contoh: P0328" autocapitalize="characters">
+     <button class="action" type="button" onclick="aiFindDtc()">CARI DTC / FIND CODE</button>
+     <p id="aiDtcInfo" class="ai-muted">Masukkan kod untuk semak pangkalan data DTC KARDRIVER.</p>
+    </div>
+    <div class="ai-field">
+     <label for="aiSymptoms">Simptom / Symptoms</label>
+     <textarea id="aiSymptoms" placeholder="Terangkan simptom kenderaan. Contoh: enjin bergegar, susah start, hilang kuasa..."></textarea>
+    </div>
+    <button class="action" type="button" onclick="analyzeAiMechanic()">⚙ ANALISIS / ANALYZE</button>
+   </div>
+   <div class="ai-panel">
+    <h3>🕘 SEJARAH DIAGNOSIS / DIAGNOSIS HISTORY</h3>
+    <div id="aiHistoryList" class="ai-muted">Belum ada rekod diagnosis.</div>
+    <button class="action" type="button" onclick="clearAiHistory()">PADAM SEJARAH / CLEAR HISTORY</button>
+   </div>
+  </div>
+  <div class="ai-panel">
+   <h2>HASIL ANALISIS / DIAGNOSIS RESULT</h2>
+   <div id="aiResult" class="ai-muted">Masukkan maklumat kenderaan, kod DTC dan simptom. Tekan ANALISIS untuk melihat panduan diagnosis.</div>
+  </div>
+ </div>
+ <div class="notice">Nota / Note: Analisis V1 menggunakan pangkalan DTC KARDRIVER dan peraturan asas. Ia bukan diagnosis AI generatif atau pengesahan kerosakan. Sahkan semua punca melalui ujian sebenar dan manual servis kenderaan.</div>
+ <button class="action" onclick="go('home')">KEMBALI KE HOME / BACK TO HOME</button>
+</section>
+
 </main>
 
 <div id="moreMenu" class="more-menu hidden">
@@ -478,6 +536,7 @@ body{padding-bottom:90px;}
   <button onclick="go('dtc');closeMore()"><b>⌕</b>DTC DATABASE</button>
   <button onclick="go('quiz');closeMore()"><b>✓</b>QUIZ</button>
   <button onclick="go('profile');closeMore()"><b>♙</b>PROFILE</button>
+  <button onclick="go('aiMechanic');closeMore()"><b>🤖</b>AI MECHANIC</button>
   <button id="adminMenuButton" class="hidden" onclick="window.openAdminControlCenter();closeMore()"><b>⚙</b>ADMIN</button>
  </div>
 </div>
@@ -546,6 +605,7 @@ function go(page){
  if(page==="garage")renderGarage();
  if(page==="service")renderService();
  if(page==="dtc")renderDTC();
+ if(page==="aiMechanic")renderAiHistory();
  if(page==="profile")updateStats();
  if(page==="profile" && window.renderUserProfile)window.renderUserProfile();
  if(page==="quiz")showQuestion();
@@ -1371,6 +1431,77 @@ function resetProgress(){
  }
 }
 renderCourses();updateStats();showQuestion();
+
+
+function aiEscape(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function aiGetHistory(){
+ try{
+  const data=JSON.parse(localStorage.getItem("karfxAiMechanicHistory")||"[]");
+  return Array.isArray(data)?data:[];
+ }catch(e){return [];}
+}
+function renderAiHistory(){
+ const box=document.getElementById("aiHistoryList");
+ if(!box)return;
+ const items=aiGetHistory();
+ box.innerHTML=items.length?items.map((x,i)=>`<div class="ai-history-item"><strong>${aiEscape(x.code)} — ${aiEscape(x.vehicle)}</strong><p>${aiEscape(x.name||"Kod tidak dijumpai")}</p><span class="ai-muted">${aiEscape(x.date)}</span> <button type="button" class="action" onclick="loadAiHistory(${i})">BUKA / OPEN</button></div>`).join(""):"Belum ada rekod diagnosis.";
+}
+function aiFindDtc(){
+ const code=document.getElementById("aiDtcCode").value.trim().toUpperCase();
+ const found=dtcs.find(x=>x.c===code);
+ document.getElementById("aiDtcCode").value=code;
+ document.getElementById("aiDtcInfo").textContent=found?found.n+" — "+found.m:"Kod belum ditemui dalam database demo KARDRIVER.";
+}
+function analyzeAiMechanic(saveHistory=true){
+ const brand=document.getElementById("aiBrand").value.trim();
+ const model=document.getElementById("aiModel").value.trim();
+ const year=document.getElementById("aiYear").value.trim();
+ const code=document.getElementById("aiDtcCode").value.trim().toUpperCase();
+ const symptoms=document.getElementById("aiSymptoms").value.trim();
+ const result=document.getElementById("aiResult");
+ if(!code){result.textContent="Sila masukkan kod DTC terlebih dahulu. / Please enter a DTC code.";return;}
+ if(!brand||!model){result.textContent="Sila isi jenama dan model kenderaan. / Please enter vehicle brand and model.";return;}
+ const found=dtcs.find(x=>x.c===code);
+ if(!found){
+  result.innerHTML=`<div class="ai-result"><h3>${aiEscape(code)}</h3><p>Kod ini belum terdapat dalam database DTC KARDRIVER.</p><p>Please verify the code using a reliable scan tool and the manufacturer's service information.</p></div>`;
+  return;
+ }
+ const highRisk=["P0300","P0301","P0335"];
+ const risk=highRisk.includes(code)?"TINGGI / HIGH":(code==="P0328"||code==="P0171"||code==="P0172"?"SEDERHANA / MODERATE":"PERLU PEMERIKSAAN / INSPECT");
+ const vehicle=[brand,model,year].filter(Boolean).join(" ");
+ const causes=found.p.split(/,\s*|\s+atau\s+/).map(x=>x.trim()).filter(Boolean);
+ const steps=found.d.split(/[.;]\s*/).filter(Boolean);
+ result.innerHTML=`
+ <div class="ai-result"><h3>${aiEscape(code)} — ${aiEscape(found.n)}</h3><p>${aiEscape(found.m)}</p><strong>${aiEscape(vehicle)}</strong></div>
+ <div class="ai-result"><h3>KEMUNGKINAN PUNCA / POSSIBLE CAUSES</h3><ul>${causes.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ul></div>
+ <div class="ai-result"><h3>SIMPTOM / SYMPTOMS</h3><p>${aiEscape(found.s)}</p><p>${aiEscape(symptoms||"Tiada simptom tambahan diberikan.")}</p></div>
+ <div class="ai-result"><h3>LANGKAH PEMERIKSAAN / INSPECTION STEPS</h3><ol>${steps.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ol></div>
+ <div class="ai-result"><h3>TAHAP RISIKO / RISK LEVEL</h3><span class="ai-risk">${risk}</span><p>${risk.startsWith("TINGGI")?"Jika enjin bergegar teruk, mati tiba-tiba atau lampu check engine berkelip, berhenti di tempat selamat dan dapatkan pemeriksaan.":"Jangan anggap kenderaan selamat hanya berdasarkan kod. Nilai simptom dan keadaan sebenar sebelum memandu."}</p></div>
+ <div class="ai-result"><h3>CADANGAN PEMBAIKAN / REPAIR RECOMMENDATION</h3><p>${aiEscape(found.r)}</p></div>`;
+ if(saveHistory){
+  const history=aiGetHistory();
+  history.unshift({code,vehicle,name:found.n,symptoms,date:new Date().toLocaleString(),brand,model,year});
+  try{localStorage.setItem("karfxAiMechanicHistory",JSON.stringify(history.slice(0,10)));}catch(e){}
+  renderAiHistory();
+ }
+}
+function loadAiHistory(index){
+ const item=aiGetHistory()[index];if(!item)return;
+ document.getElementById("aiBrand").value=item.brand||"";
+ document.getElementById("aiModel").value=item.model||"";
+ document.getElementById("aiYear").value=item.year||"";
+ document.getElementById("aiDtcCode").value=item.code||"";
+ document.getElementById("aiSymptoms").value=item.symptoms||"";
+ aiFindDtc();
+ analyzeAiMechanic(false);
+}
+function clearAiHistory(){
+ if(!confirm("Padam semua sejarah diagnosis AI Mechanic pada peranti ini?"))return;
+ localStorage.removeItem("karfxAiMechanicHistory");
+ renderAiHistory();
+}
 
 function checkSensorQuiz(){
  const answer=document.getElementById("sensorQuiz").value;
