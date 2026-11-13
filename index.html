@@ -129,6 +129,25 @@ body{padding-bottom:90px;}
   background:linear-gradient(145deg,#102b45,#07111f);
 }
 
+/* HOME V3 redesign - scoped to homePage only */
+#homePage .home-banner{position:relative;height:230px;overflow:hidden;border:1px solid #22d3ee;border-radius:18px;margin-bottom:15px;box-shadow:0 0 24px #22d3ee33;background:#071421}
+#homePage .home-banner img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}
+#homePage .home-banner-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,10,24,.88),rgba(2,10,24,.42) 58%,rgba(2,10,24,.05))}
+#homePage .home-banner-content{position:absolute;left:18px;top:50%;transform:translateY(-50%);max-width:75%;text-shadow:0 2px 12px #000}
+#homePage .home-banner-content h1{font-size:clamp(22px,5vw,34px);line-height:1.12;margin:9px 0;letter-spacing:1px}
+#homePage .home-banner-content h1 span{color:#22d3ee}
+#homePage .home-banner-content p{font-size:10px;letter-spacing:1.5px;color:#d7f7ff;font-weight:bold}
+#homePage .home-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 20px}
+#homePage .home-shortcut{min-width:0;min-height:105px;padding:12px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid #16749a;border-radius:13px;background:linear-gradient(145deg,#102b45,#071421);color:#e8f7ff;text-align:center;box-shadow:inset 0 0 14px #22d3ee0a}
+#homePage button.home-shortcut{cursor:pointer}
+#homePage .home-shortcut:active{background:#164565}
+#homePage .home-shortcut>span{font-size:25px}
+#homePage .home-shortcut b{font-size:11px;color:#22d3ee;letter-spacing:.4px}
+#homePage .home-shortcut small{font-size:10px;color:#9cc8dd}
+#homePage .home-coming{opacity:.68;border-style:dashed}
+#homePage .home-coming small{color:#e9b949;font-weight:bold}
+@media(max-width:360px){#homePage .home-shortcuts{gap:7px}#homePage .home-shortcut{min-height:96px}#homePage .home-shortcut b{font-size:10px}#homePage .home-banner{height:200px}}
+
 </style>
   <link rel="stylesheet" href="assets/tron.css">
 <link rel="stylesheet" href="css/garage.css">
@@ -178,8 +197,22 @@ body{padding-bottom:90px;}
 </section>
 
 <section id="homePage">
- <div class="home-hero-image">
-  <img src="assets/images/home-hero.webp" alt="KARDRIVER futuristic automotive workshop">
+ <div class="home-banner">
+  <img src="assets/images/home-hero-v3.webp" alt="KARDRIVER AUTOHUB V3 futuristic automotive banner">
+  <div class="home-banner-shade"></div>
+  <div class="home-banner-content">
+   <div class="eyebrow">NEXT GENERATION AUTOMOTIVE PLATFORM</div>
+   <h1>KARDRIVER<br><span>AUTOHUB V3</span></h1>
+   <p>SMART DIAGNOSTIC • LEARN • REPAIR</p>
+  </div>
+ </div>
+ <div class="home-shortcuts">
+  <button class="home-shortcut" onclick="go('garage')"><span>🚘</span><b>GARAGE</b><small>My Vehicle</small></button>
+  <button class="home-shortcut" onclick="go('service')"><span>🛠️</span><b>SERVICE</b><small>Maintenance</small></button>
+  <button class="home-shortcut" onclick="go('courses')"><span>🎓</span><b>ACADEMY</b><small>Learn & Training</small></button>
+  <button class="home-shortcut" onclick="go('dtc')"><span>🔍</span><b>DTC DATABASE</b><small>Fault Codes</small></button>
+  <div class="home-shortcut home-coming"><span>🤖</span><b>AI MECHANIC</b><small>AKAN DATANG</small></div>
+  <div class="home-shortcut home-coming"><span>👥</span><b>COMMUNITY</b><small>AKAN DATANG</small></div>
  </div>
  <div class="hero home-intro">
   <div class="eyebrow">AUTOMOTIVE DIAGNOSTIC LEARNING</div>
