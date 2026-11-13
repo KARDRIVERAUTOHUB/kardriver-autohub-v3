@@ -1461,28 +1461,83 @@ function analyzeAiMechanic(saveHistory=true){
  const code=document.getElementById("aiDtcCode").value.trim().toUpperCase();
  const symptoms=document.getElementById("aiSymptoms").value.trim();
  const result=document.getElementById("aiResult");
- if(!code){result.textContent="Sila masukkan kod DTC terlebih dahulu. / Please enter a DTC code.";return;}
- if(!brand||!model){result.textContent="Sila isi jenama dan model kenderaan. / Please enter vehicle brand and model.";return;}
- const found=dtcs.find(x=>x.c===code);
- if(!found){
-  result.innerHTML=`<div class="ai-result"><h3>${aiEscape(code)}</h3><p>Kod ini belum terdapat dalam database DTC KARDRIVER.</p><p>Please verify the code using a reliable scan tool and the manufacturer's service information.</p></div>`;
+
+ if(!brand||!model){
+  result.textContent="Sila isi jenama dan model kenderaan. / Please enter vehicle brand and model.";
   return;
  }
- const highRisk=["P0300","P0301","P0335"];
- const risk=highRisk.includes(code)?"TINGGI / HIGH":(code==="P0328"||code==="P0171"||code==="P0172"?"SEDERHANA / MODERATE":"PERLU PEMERIKSAAN / INSPECT");
+ if(!code&&!symptoms){
+  result.textContent="Masukkan kod DTC atau terangkan simptom kenderaan terlebih dahulu.";
+  return;
+ }
+
+ const found=dtcs.find(x=>x.c===code);
+ const text=symptoms.toLowerCase();
+ const symptomMap=[
+  {terms:["bergegar","gegar","rough idle","misfire","tersengguk"],codes:["P0300","P0301","P0171"]},
+  {terms:["susah start","sukar start","tak boleh start","tidak boleh start","no start","cranking"],codes:["P0335","P0340"]},
+  {terms:["hilang kuasa","kurang kuasa","lemah","power loss","pickup lemah"],codes:["P0101","P0171","P0401","P0328"]},
+  {terms:["petrol tinggi","minyak kuat","kuat makan minyak","fuel consumption","penggunaan petrol"],codes:["P0172","P0420","P0328"]},
+  {terms:["asap hitam","black smoke","bau petrol","bau minyak"],codes:["P0172","P0455"]},
+  {terms:["lambat panas","enjin sejuk","suhu rendah","slow warm up"],codes:["P0128"]},
+  {terms:["mati tiba-tiba","enjin mati","stall","mati semasa jalan"],codes:["P0335","P0300"]},
+  {terms:["speedometer","meter kelajuan","kelajuan tidak baca"],codes:["P0500"]},
+  {terms:["check engine","lampu enjin"],codes:["P0101","P0171","P0172","P0300","P0325","P0328","P0335","P0340","P0401","P0420","P0442","P0455","P0500"]}
+ ];
+
+ const scores={};
+ symptomMap.forEach(rule=>{
+  if(rule.terms.some(term=>text.includes(term))){
+   rule.codes.forEach(c=>scores[c]=(scores[c]||0)+1);
+  }
+ });
+ dtcs.forEach(item=>{
+  const hay=(item.s+" "+item.p+" "+item.n+" "+item.m).toLowerCase();
+  const words=text.split(/[^a-z0-9]+/).filter(w=>w.length>=4);
+  words.forEach(word=>{
+   if(hay.includes(word))scores[item.c]=(scores[item.c]||0)+1;
+  });
+ });
+ const candidates=Object.entries(scores)
+  .filter(([c,score])=>score>0&&dtcs.some(x=>x.c===c))
+  .sort((a,b)=>b[1]-a[1])
+  .slice(0,4)
+  .map(([c])=>dtcs.find(x=>x.c===c));
+
  const vehicle=[brand,model,year].filter(Boolean).join(" ");
- const causes=found.p.split(/,\s*|\s+atau\s+/).map(x=>x.trim()).filter(Boolean);
- const steps=found.d.split(/[.;]\s*/).filter(Boolean);
- result.innerHTML=`
- <div class="ai-result"><h3>${aiEscape(code)} — ${aiEscape(found.n)}</h3><p>${aiEscape(found.m)}</p><strong>${aiEscape(vehicle)}</strong></div>
- <div class="ai-result"><h3>KEMUNGKINAN PUNCA / POSSIBLE CAUSES</h3><ul>${causes.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ul></div>
- <div class="ai-result"><h3>SIMPTOM / SYMPTOMS</h3><p>${aiEscape(found.s)}</p><p>${aiEscape(symptoms||"Tiada simptom tambahan diberikan.")}</p></div>
- <div class="ai-result"><h3>LANGKAH PEMERIKSAAN / INSPECTION STEPS</h3><ol>${steps.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ol></div>
- <div class="ai-result"><h3>TAHAP RISIKO / RISK LEVEL</h3><span class="ai-risk">${risk}</span><p>${risk.startsWith("TINGGI")?"Jika enjin bergegar teruk, mati tiba-tiba atau lampu check engine berkelip, berhenti di tempat selamat dan dapatkan pemeriksaan.":"Jangan anggap kenderaan selamat hanya berdasarkan kod. Nilai simptom dan keadaan sebenar sebelum memandu."}</p></div>
- <div class="ai-result"><h3>CADANGAN PEMBAIKAN / REPAIR RECOMMENDATION</h3><p>${aiEscape(found.r)}</p></div>`;
+ const dangerTerms=["overheat","terlalu panas","suhu naik","lampu check engine berkelip","check engine berkelip","asap tebal","bau petrol kuat","brek gagal"];
+ const urgent=dangerTerms.some(term=>text.includes(term));
+ const highRisk=found&&["P0300","P0301","P0335"].includes(code);
+ const risk=urgent||highRisk?"TINGGI / HIGH":(found&&["P0328","P0171","P0172"].includes(code)?"SEDERHANA / MODERATE":"PERLU PEMERIKSAAN / INSPECT");
+
+ let html=`<div class="ai-result"><h3>HASIL DIAGNOSIS / DIAGNOSIS RESULT</h3><strong>${aiEscape(vehicle)}</strong>`;
+ if(code)html+=`<p>Kod dimasukkan: <strong>${aiEscape(code)}</strong></p>`;
+ if(found)html+=`<p>${aiEscape(found.n)} — ${aiEscape(found.m)}</p>`;
+ else if(code)html+=`<p>Kod ini belum ditemui dalam database demo. Analisis simptom dipaparkan secara berasingan.</p>`;
+ html+=`<p><strong>Simptom pelanggan:</strong> ${aiEscape(symptoms||"Tiada simptom tambahan.")}</p></div>`;
+
+ if(found){
+  const causes=found.p.split(/,\s*|\s+atau\s+/).map(x=>x.trim()).filter(Boolean);
+  const steps=found.d.split(/[.;]\s*/).filter(Boolean);
+  html+=`<div class="ai-result"><h3>KOD DTC DAN MAKSUD</h3><p><strong>${aiEscape(found.c)} — ${aiEscape(found.n)}</strong></p><p>${aiEscape(found.m)}</p><h3>KEMUNGKINAN PUNCA</h3><ul>${causes.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ul><h3>LANGKAH PEMERIKSAAN</h3><ol>${steps.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ol><h3>CADANGAN PEMBAIKAN</h3><p>${aiEscape(found.r)}</p></div>`;
+ }
+
+ if(candidates.length){
+  html+=`<div class="ai-result"><h3>PADANAN SIMPTOM / POSSIBLE DTC MATCHES</h3><p>Berikut ialah kod yang mungkin berkaitan berdasarkan kata kunci simptom. Ini bukan pengesahan kerosakan.</p>`;
+  candidates.forEach(item=>{
+   html+=`<p><strong>${aiEscape(item.c)} — ${aiEscape(item.n)}</strong><br>${aiEscape(item.s)}<br><strong>Punca mungkin:</strong> ${aiEscape(item.p)}<br><strong>Pemeriksaan:</strong> ${aiEscape(item.d)}</p>`;
+  });
+  html+="</div>";
+ }else if(!found){
+  html+=`<div class="ai-result"><h3>PADANAN SIMPTOM</h3><p>Tiada padanan kukuh ditemui dalam 16 kod DTC demo. Periksa kenderaan menggunakan scanner dan manual servis pengeluar.</p></div>`;
+ }
+
+ html+=`<div class="ai-result"><h3>TAHAP RISIKO / RISK LEVEL</h3><span class="ai-risk">${risk}</span><p>${urgent?"Amaran: simptom yang dinyatakan mungkin menandakan keadaan berbahaya. Berhenti di tempat selamat dan dapatkan pemeriksaan profesional.":highRisk?"Jika enjin bergegar teruk, mati tiba-tiba atau lampu check engine berkelip, hentikan pemanduan dan dapatkan pemeriksaan.":"Tahap risiko tidak boleh dipastikan melalui teks sahaja. Nilai keadaan sebenar kenderaan sebelum memandu."}</p></div>`;
+ result.innerHTML=html;
+
  if(saveHistory){
   const history=aiGetHistory();
-  history.unshift({code,vehicle,name:found.n,symptoms,date:new Date().toLocaleString(),brand,model,year});
+  history.unshift({code,vehicle,name:found?found.n:(candidates.length?"Diagnosis berdasarkan simptom":"Padanan simptom tidak ditemui"),symptoms,date:new Date().toLocaleString(),brand,model,year});
   try{localStorage.setItem("karfxAiMechanicHistory",JSON.stringify(history.slice(0,10)));}catch(e){}
   renderAiHistory();
  }
