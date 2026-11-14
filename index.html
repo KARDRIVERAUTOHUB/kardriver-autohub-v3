@@ -151,6 +151,7 @@ body{padding-bottom:90px;}
 </style>
   <link rel="stylesheet" href="assets/tron.css">
 <link rel="stylesheet" href="css/garage.css">
+<link rel="stylesheet" href="css/community.css">
 </head>
 <body>
 <header>
@@ -207,7 +208,7 @@ body{padding-bottom:90px;}
   <button class="home-shortcut" onclick="go('courses')"><span>🎓</span><b>ACADEMY</b><small>Learn & Training</small></button>
   <button class="home-shortcut" onclick="go('dtc')"><span>🔍</span><b>DTC DATABASE</b><small>Fault Codes</small></button>
   <button class="home-shortcut" onclick="go('aiMechanic')"><span>🤖</span><b>AI MECHANIC</b><small>DIAGNOSIS AI</small></button>
-  <div class="home-shortcut home-coming"><span>👥</span><b>COMMUNITY</b><small>AKAN DATANG</small></div>
+  <button class="home-shortcut" onclick="openCommunity()"><span>👥</span><b>COMMUNITY</b><small>Join Community</small></button>
  </div>
  <div class="hero home-intro">
   <div class="eyebrow">AUTOMOTIVE DIAGNOSTIC LEARNING</div>
@@ -544,6 +545,22 @@ body{padding-bottom:90px;}
  <button class="action" onclick="go('home')">KEMBALI KE HOME / BACK TO HOME</button>
 </section>
 
+<section id="communityPage" class="hidden">
+ <div class="community-header">
+  <div class="community-brand">KARDRIVER <span>COMMUNITY</span></div>
+  <div class="community-subtitle">CONNECT · SHARE · GROW</div>
+  <button class="community-back" onclick="closeCommunity()">← KEMBALI KE AUTOHUB</button>
+ </div>
+ <h2 id="communityViewTitle">COMMUNITY</h2>
+ <div id="communityContent"></div>
+ <nav class="community-nav" aria-label="Community navigation">
+  <button type="button" data-view="home" class="active" onclick="communityNavigate('home')"><span>⌂</span>HOME</button>
+  <button type="button" data-view="chat" onclick="communityNavigate('chat')"><span>💬</span>CHAT</button>
+  <button type="button" data-view="market" onclick="communityNavigate('market')"><span>🛍️</span>MARKET</button>
+  <button type="button" data-view="jana" onclick="communityNavigate('jana')"><span>🚀</span>JANA</button>
+  <button type="button" data-view="profile" onclick="communityNavigate('profile')"><span>♙</span>PROFILE</button>
+ </nav>
+</section>
 </main>
 
 <div id="moreMenu" class="more-menu hidden">
@@ -616,9 +633,14 @@ function closeMore(){
  if(menu) menu.classList.add("hidden");
 }
 function go(page){
+ const target=document.getElementById(page+"Page");
+ if(!target){console.warn("Page not found:",page);return;}
  document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
- document.getElementById(page+"Page").classList.remove("hidden");
+ target.classList.remove("hidden");
  document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ const smartNav=document.querySelector("nav.smart-nav");
+ if(smartNav)smartNav.classList.toggle("hidden",page==="community");
+ if(page!=="community")closeMore();
  if(page==="garage")renderGarage();
  if(page==="service")renderService();
  if(page==="dtc")renderDTC();
@@ -1725,5 +1747,6 @@ function checkSensorQuiz(){
 <script type="module" src="js/firebase-auth.js"></script>
 <script src="js/profile.js"></script>
 <script src="js/admin.js"></script>
+<script src="js/community.js"></script>
 </body>
 </html>

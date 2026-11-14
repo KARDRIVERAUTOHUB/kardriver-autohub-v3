@@ -1,0 +1,143 @@
+/* KARDRIVER COMMUNITY V1 - TRON LEGACY + ROYAL BLUE */
+#communityPage{
+  --community-blue:#2563EB;
+  --community-cyan:#22d3ee;
+  color:#e8f7ff;
+  padding-bottom:18px;
+}
+#communityPage .community-header{
+  padding:20px 16px;
+  border:1px solid #2563EB;
+  border-radius:18px;
+  background:linear-gradient(135deg,#102b55,#071421 70%);
+  box-shadow:0 0 22px #2563eb30,inset 0 0 18px #22d3ee0a;
+}
+#communityPage .community-brand{
+  color:#fff;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:1.5px;
+}
+#communityPage .community-brand span{color:#60a5fa}
+#communityPage .community-subtitle{
+  margin-top:7px;
+  color:#a9c8e8;
+  font-size:11px;
+  letter-spacing:2px;
+}
+#communityPage .community-welcome{
+  margin:18px 2px 12px;
+  font-size:14px;
+  color:#b8d5ed;
+}
+#communityPage .community-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin:14px 0;
+}
+#communityPage .community-card{
+  min-width:0;
+  min-height:155px;
+  padding:16px 13px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  text-align:left;
+  gap:9px;
+  border:1px solid #1d4e89;
+  border-radius:15px;
+  background:linear-gradient(145deg,#10294a,#091522 75%);
+  color:#e8f7ff;
+  box-shadow:inset 0 0 16px #2563eb12;
+  cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+#communityPage .community-card:active{
+  transform:scale(.98);
+  border-color:#22d3ee;
+  box-shadow:0 0 15px #22d3ee25;
+}
+#communityPage .community-icon{
+  width:43px;
+  height:43px;
+  display:grid;
+  place-items:center;
+  border:1px solid #2563EB;
+  border-radius:12px;
+  background:#102e59;
+  font-size:23px;
+}
+#communityPage .community-card strong{
+  color:#60a5fa;
+  font-size:13px;
+  letter-spacing:.4px;
+}
+#communityPage .community-card small{
+  color:#a9c8e8;
+  font-size:11px;
+  line-height:1.45;
+}
+#communityPage .community-section-title{
+  margin:22px 2px 10px;
+  color:#22d3ee;
+  font-size:13px;
+  letter-spacing:1.2px;
+}
+#communityPage .community-info{
+  padding:14px;
+  border:1px solid #164c70;
+  border-radius:13px;
+  background:#0c1d30;
+  color:#a9c8e8;
+  font-size:12px;
+  line-height:1.6;
+}
+#communityPage .community-back{
+  width:100%;
+  margin-top:16px;
+  padding:13px;
+  border:1px solid #2563EB;
+  border-radius:11px;
+  background:#102b55;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+#communityPage .community-nav{
+  position:sticky;
+  bottom:0;
+  z-index:4;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:3px;
+  margin:20px -16px -18px;
+  padding:10px 5px calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid #1d4e89;
+  background:#071421f5;
+  backdrop-filter:blur(12px);
+}
+#communityPage .community-nav button{
+  min-width:0;
+  padding:7px 2px;
+  border:0;
+  background:transparent;
+  color:#91abc5;
+  font-size:9px;
+  font-weight:700;
+  cursor:pointer;
+}
+#communityPage .community-nav button span{
+  display:block;
+  margin-bottom:4px;
+  font-size:18px;
+}
+#communityPage .community-nav button.active{color:#60a5fa}
+@media(max-width:360px){
+  #communityPage .community-grid{gap:8px}
+  #communityPage .community-card{padding:12px 10px;min-height:145px}
+  #communityPage .community-card strong{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  #communityPage .community-card{transition:none}
+}
