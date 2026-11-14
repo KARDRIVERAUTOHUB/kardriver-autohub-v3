@@ -512,6 +512,23 @@ body{padding-bottom:90px;}
     </div>
     <button class="action" type="button" onclick="analyzeAiMechanic()">⚙ ANALISIS / ANALYZE</button>
    </div>
+   <div class="ai-panel" id="aiTroubleshootPanel">
+    <h3>2. INTERACTIVE TROUBLESHOOTING</h3>
+    <p class="ai-muted">Pilih kategori masalah untuk memulakan pemeriksaan berperingkat.</p>
+    <div class="ai-field">
+     <label for="aiTroubleCategory">Kategori masalah / Problem category</label>
+     <select id="aiTroubleCategory" onchange="aiStartTroubleshooting()">
+      <option value="">-- PILIH KATEGORI / SELECT CATEGORY --</option>
+      <option value="engine">🚗 Enjin / Engine</option>
+      <option value="gearbox">⚙️ Gearbox / Transmission</option>
+      <option value="aircond">❄️ Aircond</option>
+      <option value="electrical">🔋 Elektrik / Electrical</option>
+      <option value="brake">🛞 ABS / Brake</option>
+      <option value="other">🔧 Lain-lain / Other</option>
+     </select>
+    </div>
+    <div id="aiTroubleQuestions" class="ai-result ai-muted">Pilih kategori untuk memulakan soalan diagnosis.</div>
+   </div>
    <div class="ai-panel">
     <h3>🕘 SEJARAH DIAGNOSIS / DIAGNOSIS HISTORY</h3>
     <div id="aiHistoryList" class="ai-muted">Belum ada rekod diagnosis.</div>
@@ -1557,6 +1574,140 @@ function clearAiHistory(){
  localStorage.removeItem("karfxAiMechanicHistory");
  renderAiHistory();
 }
+
+const aiTroubleBank={
+ engine:[
+  {q:"Bilakah enjin bergegar?",a:["Semasa idle","Semasa memecut","Sepanjang masa","Kadang-kadang"],positive:[0,1,2,3],tags:["P0300","P0301"]},
+  {q:"Adakah enjin sukar dihidupkan?",a:["Ya","Tidak","Kadang-kadang"],positive:[0,2],tags:["P0335","P0340"]},
+  {q:"Adakah kuasa enjin berkurang?",a:["Ya","Tidak","Tidak pasti"],positive:[0],tags:["P0101","P0171","P0401"]}
+ ],
+ gearbox:[
+  {q:"Apakah masalah pertukaran gear?",a:["Gear lambat masuk","Gear tersentak","Gear tidak bergerak","Tiada masalah pertukaran"],positive:[0,1,2],tags:[]},
+  {q:"Adakah RPM naik tetapi kereta kurang bergerak?",a:["Ya","Tidak","Kadang-kadang"],positive:[0,2],tags:[]},
+  {q:"Adakah terdapat kebocoran minyak gearbox?",a:["Ya","Tidak","Tidak pasti"],positive:[0,2],tags:[]}
+ ],
+ aircond:[
+  {q:"Bagaimana keadaan aircond?",a:["Tidak sejuk langsung","Sejuk ketika idle sahaja","Sejuk ketika bergerak sahaja","Sekejap sejuk sekejap panas"],positive:[0,1,3],tags:[]},
+  {q:"Adakah kipas blower berfungsi?",a:["Ya","Tidak","Kadang-kadang"],positive:[1,2],tags:[]},
+  {q:"Adakah bunyi luar biasa muncul apabila aircond dihidupkan?",a:["Ya","Tidak","Kadang-kadang"],positive:[0,2],tags:[]}
+ ],
+ electrical:[
+  {q:"Apakah masalah elektrik?",a:["Bateri cepat habis","Enjin tidak boleh start","Lampu malap","Fius kerap putus"],positive:[0,1,2,3],tags:[]},
+  {q:"Adakah masalah berlaku setiap masa?",a:["Ya","Tidak","Kadang-kadang"],positive:[0,2],tags:[]},
+  {q:"Adakah lampu amaran bateri menyala ketika enjin hidup?",a:["Ya","Tidak","Tidak pasti"],positive:[0,2],tags:[]}
+ ],
+ brake:[
+  {q:"Apakah simptom sistem brek?",a:["Lampu ABS menyala","Pedal brek bergetar","Brek kurang mencengkam","Bunyi ketika membrek"],positive:[0,1,2,3],tags:[]},
+  {q:"Adakah lampu amaran brek menyala?",a:["Ya","Tidak","Tidak pasti"],positive:[0,2],tags:[]},
+  {q:"Adakah pedal brek terasa lembut atau tenggelam?",a:["Ya","Tidak","Kadang-kadang"],positive:[0,2],tags:[]}
+ ],
+ other:[
+  {q:"Apakah simptom utama kenderaan?",a:["Bunyi luar biasa","Bau luar biasa","Kebocoran cecair","Masalah lain"],positive:[0,1,2],tags:[]},
+  {q:"Bilakah masalah berlaku?",a:["Semasa start","Semasa idle","Semasa bergerak","Sepanjang masa"],positive:[0,1,2,3],tags:[]}
+ ]
+};
+
+let aiTroubleAnswers=[];
+
+function aiStartTroubleshooting(){
+ const category=document.getElementById("aiTroubleCategory").value;
+ const box=document.getElementById("aiTroubleQuestions");
+ aiTroubleAnswers=[];
+ if(!category||!aiTroubleBank[category]){
+  box.textContent="Pilih kategori untuk memulakan soalan diagnosis.";
+  return;
+ }
+ aiRenderTroubleQuestion(0);
+}
+
+function aiRenderTroubleQuestion(index){
+ const category=document.getElementById("aiTroubleCategory").value;
+ const questions=aiTroubleBank[category]||[];
+ const box=document.getElementById("aiTroubleQuestions");
+ if(index>=questions.length){
+  aiFinishTroubleshooting();
+  return;
+ }
+ const item=questions[index];
+ box.innerHTML=`<h3>SOALAN ${index+1} / ${questions.length}</h3><p><strong>${aiEscape(item.q)}</strong></p><div>${item.a.map((answer,i)=>`<label style="display:block;margin:10px 0"><input type="radio" name="aiTroubleAnswer" value="${i}" style="width:auto"> ${aiEscape(answer)}</label>`).join("")}</div><button type="button" class="action" onclick="aiSubmitTroubleAnswer(${index})">SETERUSNYA / NEXT</button>`;
+}
+
+function aiSubmitTroubleAnswer(index){
+ const selected=document.querySelector('input[name="aiTroubleAnswer"]:checked');
+ if(!selected){
+  alert("Sila pilih satu jawapan terlebih dahulu.");
+  return;
+ }
+ aiTroubleAnswers[index]=Number(selected.value);
+ aiRenderTroubleQuestion(index+1);
+}
+
+function aiFinishTroubleshooting(){
+ const category=document.getElementById("aiTroubleCategory").value;
+ const questions=aiTroubleBank[category]||[];
+ const scores={};
+ let answeredCount=0;
+
+ questions.forEach((item,i)=>{
+  const answer=aiTroubleAnswers[i];
+  if(answer===undefined)return;
+  answeredCount++;
+  if((item.positive||[]).includes(answer)){
+   (item.tags||[]).forEach(code=>{
+    scores[code]=(scores[code]||0)+1;
+   });
+  }
+ });
+
+ const categoryNames={
+  engine:"Enjin / Engine",
+  gearbox:"Gearbox / Transmission",
+  aircond:"Aircond",
+  electrical:"Elektrik / Electrical",
+  brake:"ABS / Brake",
+  other:"Lain-lain / Other"
+ };
+
+ const inspection={
+  engine:"Periksa spark plug, ignition coil, injector, compression, kebocoran udara dan data live scanner.",
+  gearbox:"Periksa paras dan keadaan minyak mengikut spesifikasi, kebocoran, live data dan kod transmisi menggunakan scanner yang menyokong sistem tersebut.",
+  aircond:"Periksa blower, fius, relay, compressor, tekanan refrigerant dan kipas condenser. Ujian refrigerant perlu dibuat oleh juruteknik bertauliah.",
+  electrical:"Periksa voltan bateri, sistem pengecasan alternator, starter, fius, relay, sambungan bumi dan pendawaian menggunakan multimeter.",
+  brake:"Periksa sensor kelajuan roda, wiring ABS, keadaan pad dan cakera brek serta sistem hidraulik. Jika brek kurang mencengkam atau pedal tenggelam, jangan pandu.",
+  other:"Kenal pasti lokasi bunyi, bau atau kebocoran. Periksa komponen berkaitan dan rujuk manual servis sebelum membuat pembaikan."
+ };
+
+ const ranked=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+ const matches=ranked.map(([code,score])=>({
+  item:dtcs.find(x=>x.c===code),score
+ })).filter(x=>x.item);
+
+ let html=`<h3>HASIL SOALAN SUSULAN</h3>
+ <div class="ai-result">
+ <p><strong>Kategori:</strong> ${aiEscape(categoryNames[category]||category)}</p>
+ <p><strong>Soalan dijawab:</strong> ${answeredCount}/${questions.length}</p>
+ </div>`;
+
+ if(matches.length){
+  html+=`<div class="ai-result"><h3>PADANAN DTC YANG DISOKONG DATABASE</h3><ul>`;
+  matches.forEach(x=>{
+   html+=`<li><strong>${aiEscape(x.item.c)} — ${aiEscape(x.item.n)}</strong><br>${aiEscape(x.item.s)}<br>Skor padanan: ${x.score}</li>`;
+  });
+  html+=`</ul><p>Skor ialah kiraan padanan jawapan, bukan peratus kebarangkalian atau pengesahan kerosakan.</p></div>`;
+ }else{
+  html+=`<div class="ai-result"><h3>PADANAN DTC</h3><p>Tiada padanan DTC khusus yang disokong bagi kategori ini dalam database demo KARDRIVER.</p></div>`;
+ }
+
+ html+=`<div class="ai-result"><h3>LANGKAH PEMERIKSAAN / INSPECTION</h3><p>${aiEscape(inspection[category]||inspection.other)}</p></div>`;
+
+ if(category==="brake"){
+  html+=`<div class="ai-result"><h3>AMARAN KESELAMATAN</h3><p>Jika brek gagal, pedal tenggelam atau kuasa membrek berkurang, hentikan penggunaan kenderaan dan dapatkan bantuan profesional.</p></div>`;
+ }
+
+ html+='<button type="button" class="action" onclick="aiStartTroubleshooting()">ULANG SOALAN / RETAKE</button>';
+ document.getElementById("aiTroubleQuestions").innerHTML=html;
+}
+
 
 function checkSensorQuiz(){
  const answer=document.getElementById("sensorQuiz").value;
