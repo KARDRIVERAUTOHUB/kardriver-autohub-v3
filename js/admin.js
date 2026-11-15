@@ -143,6 +143,19 @@ window.loadAdminDashboard = async function() {
           const button = adminElement("button", buttonText, "action");
 
           button.type = "button";
+
+          if (action === "SUSPENDED") {
+            button.style.background = "linear-gradient(135deg, #991B1B, #DC2626)";
+            button.style.border = "1px solid #EF4444";
+            button.style.color = "#FFFFFF";
+            button.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.45)";
+          } else {
+            button.style.background = "linear-gradient(135deg, #065F46, #16A34A)";
+            button.style.border = "1px solid #22C55E";
+            button.style.color = "#FFFFFF";
+            button.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.45)";
+          }
+
           button.addEventListener("click", () => {
             window.setAdminUserStatus(user.uid, action, button);
           });
