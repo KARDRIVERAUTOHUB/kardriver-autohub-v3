@@ -14,8 +14,11 @@ import {
   doc,
   setDoc,
   getDoc,
+  onSnapshot,
   collection,
   getDocs,
+  query,
+  where,
   serverTimestamp,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
@@ -44,8 +47,8 @@ window.saveUserProfile = async function(user) {
       email: user.email || "",
       membership: "FREE",
       status: "ACTIVE",
-      roles: ["OWNER"],
-      activeRole: "OWNER",
+      roles: ["DRIVER"],
+      activeRole: "DRIVER",
       createdAt: user.metadata?.creationTime || ""
     };
 
@@ -137,9 +140,22 @@ window.firebaseGetUserRoles = async function() {
 
     const data = snapshot.data();
 
+    const allowedRoles = ["OWNER", "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"];
+
+    if (
+      !Array.isArray(data.roles) ||
+      data.roles.length === 0 ||
+      !data.roles.every(role => allowedRoles.includes(role)) ||
+      !data.activeRole ||
+      !allowedRoles.includes(data.activeRole) ||
+      !data.roles.includes(data.activeRole)
+    ) {
+      throw new Error("Role profil tidak sah.");
+    }
+
     return {
-      roles: Array.isArray(data.roles) ? data.roles : ["OWNER"],
-      activeRole: data.activeRole || "OWNER"
+      roles: data.roles,
+      activeRole: data.activeRole
     };
   } catch (error) {
     console.error("Gagal membaca role:", error);
@@ -162,10 +178,18 @@ window.firebaseSetActiveRole = async function(newRole) {
     }
 
     const data = snapshot.data();
+    if (data.status !== "ACTIVE") {
+      throw new Error("Akaun tidak aktif. Pertukaran role tidak dibenarkan.");
+    }
+    const allowedRoles = ["OWNER", "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"];
     const roles = Array.isArray(data.roles) ? data.roles : [];
 
-    if (!roles.includes(newRole)) {
-      throw new Error("Role ini belum diluluskan untuk akaun anda.");
+    if (
+      !roles.every(role => allowedRoles.includes(role)) ||
+      !allowedRoles.includes(newRole) ||
+      !roles.includes(newRole)
+    ) {
+      throw new Error("Role ini tidak sah atau belum diluluskan untuk akaun anda.");
     }
 
     await setDoc(userRef, { activeRole: newRole }, { merge: true });
@@ -456,14 +480,88 @@ window.refreshAdminMenu = async function(user) {
   }
 };
 
-// Pantau status akaun
-onAuthStateChanged(auth, async function(user) {
-  if (user) {
-    if (typeof window.unlockApp === "function") {
-      window.unlockApp(user);
-    }
+let unsubscribeUserStatus = null;
+let authStateVersion = 0;
 
-    await window.refreshAdminMenu(user);
+// Pantau status akaun dan sekat akaun tidak aktif
+onAuthStateChanged(auth, async function(user) {
+  const currentVersion = ++authStateVersion;
+  if (unsubscribeUserStatus) {
+    unsubscribeUserStatus();
+    unsubscribeUserStatus = null;
+  }
+
+  if (user) {
+    try {
+      const isAdmin = await window.firebaseIsPlatformAdmin(true);
+if (currentVersion !== authStateVersion) return;
+
+      if (!isAdmin) {
+        const userRef = doc(db, "users", user.uid);
+        const profileSnapshot = await getDoc(userRef);
+        if (currentVersion !== authStateVersion) return;
+
+        if (
+          !profileSnapshot.exists() ||
+          profileSnapshot.data().status !== "ACTIVE"
+        ) {
+          alert("Akaun tidak aktif atau profil tidak sah. Sila hubungi Admin.");
+          await signOut(auth);
+          return;
+        }
+
+        unsubscribeUserStatus = onSnapshot(
+          userRef,
+          async function(snapshot) {
+            if (
+              currentVersion !== authStateVersion ||
+              auth.currentUser?.uid !== user.uid
+            ) return;
+
+            if (
+              !snapshot.exists() ||
+              snapshot.data().status !== "ACTIVE"
+            ) {
+              if (unsubscribeUserStatus) {
+                unsubscribeUserStatus();
+                unsubscribeUserStatus = null;
+              }
+
+              if (auth.currentUser?.uid === user.uid) {
+                alert("Akaun anda telah digantung atau tidak aktif. Sila hubungi Admin.");
+                await signOut(auth);
+              }
+            }
+          },
+          async function(error) {
+            if (
+              currentVersion !== authStateVersion ||
+              auth.currentUser?.uid !== user.uid
+            ) return;
+
+            console.error("Pemantauan status akaun gagal:", error);
+
+            if (auth.currentUser?.uid === user.uid) {
+              alert("Status akaun tidak dapat dipantau. Sila login semula.");
+              await signOut(auth);
+            }
+          }
+        );
+      }
+
+
+      if (currentVersion !== authStateVersion) return;
+      if (typeof window.unlockApp === "function") {
+        window.unlockApp(user);
+      }
+
+      await window.refreshAdminMenu(user);
+    } catch (error) {
+      if (currentVersion !== authStateVersion) return;
+      console.error("Pengesahan status akaun gagal:", error);
+      alert("Status akaun tidak dapat disahkan. Sila cuba login semula.");
+      await signOut(auth);
+    }
   } else {
     const button = document.getElementById("adminMenuButton");
     if (button) button.classList.add("hidden");
@@ -476,7 +574,6 @@ onAuthStateChanged(auth, async function(user) {
     }
   }
 });
-
 console.log("KARDRIVER FIREBASE AUTH READY");
 
 // FORGOT PASSWORD - LOGIN PAGE
@@ -511,3 +608,33 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("FORGOT PASSWORD BUTTON READY");
   }
 });
+
+// COMMUNITY DIRECTORY - ACTIVE MEMBERS ONLY
+window.getCommunityDirectory = async function() {
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error("Sila login untuk melihat direktori ahli.");
+  }
+
+  const directoryQuery = query(
+    collection(db, "community_profiles"),
+    where("status", "==", "ACTIVE")
+  );
+
+  const snapshot = await getDocs(directoryQuery);
+
+  return snapshot.docs.map(function(item) {
+    const data = item.data();
+
+    return {
+      uid: item.id,
+      displayName: data.displayName || "Pengguna KARDRIVER",
+      photoURL: data.photoURL || null
+    };
+  }).sort(function(a, b) {
+    return a.displayName.localeCompare(b.displayName);
+  });
+};
+
+console.log("KARDRIVER COMMUNITY DIRECTORY READY");
