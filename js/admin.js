@@ -131,9 +131,24 @@ window.loadAdminDashboard = async function() {
           adminElement("p", "Role: " + roles.join(", "))
         );
 
+        const userStatus = String(user.status || "-").toUpperCase();
+
         card.appendChild(
-          adminElement("span", user.status || "-", "tag")
+          adminElement("span", userStatus, "tag")
         );
+
+        if (userStatus === "ACTIVE" || userStatus === "SUSPENDED") {
+          const action = userStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+          const buttonText = action === "SUSPENDED" ? "SUSPEND" : "ACTIVATE";
+          const button = adminElement("button", buttonText, "action");
+
+          button.type = "button";
+          button.addEventListener("click", () => {
+            window.setAdminUserStatus(user.uid, action, button);
+          });
+
+          card.appendChild(button);
+        }
 
         userList.appendChild(card);
       });
@@ -150,6 +165,38 @@ window.loadAdminDashboard = async function() {
 
   } finally {
     window.adminState.loading = false;
+  }
+};
+
+// TINDAKAN SUSPEND / ACTIVATE PENGGUNA
+window.setAdminUserStatus = async function(uid, targetStatus, button) {
+  if (!window.adminState.verified) {
+    alert("Akses Platform Admin diperlukan.");
+    return;
+  }
+
+  const actionText = targetStatus === "SUSPENDED" ? "menggantung" : "mengaktifkan";
+
+  if (!confirm("Adakah anda pasti mahu " + actionText + " akaun ini?")) {
+    return;
+  }
+
+  try {
+    if (button) button.disabled = true;
+
+    const result = await window.firebaseAdminSetUserStatus(uid, targetStatus);
+
+    if (!result.success) {
+      throw new Error("Tindakan tidak berjaya.");
+    }
+
+    alert("Status akaun berjaya dikemaskini: " + result.status);
+    await window.loadAdminDashboard();
+
+  } catch (error) {
+    console.error("Admin user status error:", error);
+    alert("Gagal mengemaskini status akaun: " + error.message);
+    if (button) button.disabled = false;
   }
 };
 

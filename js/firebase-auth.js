@@ -638,3 +638,72 @@ window.getCommunityDirectory = async function() {
 };
 
 console.log("KARDRIVER COMMUNITY DIRECTORY READY");
+
+
+// ADMIN: GANTUNG / AKTIFKAN AKAUN DAN PROFIL DIREKTORI
+window.firebaseAdminSetUserStatus = async function(uid, targetStatus) {
+  try {
+    const isAdmin = await window.firebaseIsPlatformAdmin(true);
+    if (!isAdmin) throw new Error("Akses Platform Admin ditolak.");
+
+    if (!uid || !["ACTIVE", "SUSPENDED"].includes(targetStatus)) {
+      throw new Error("UID atau status sasaran tidak sah.");
+    }
+
+    const userRef = doc(db, "users", uid);
+    const profileRef = doc(db, "community_profiles", uid);
+
+    await runTransaction(db, async transaction => {
+      const userSnapshot = await transaction.get(userRef);
+      const profileSnapshot = await transaction.get(profileRef);
+
+      if (!userSnapshot.exists()) {
+        throw new Error("Profil pengguna tidak ditemui.");
+      }
+
+      const userData = userSnapshot.data();
+
+      if (!["ACTIVE", "SUSPENDED"].includes(userData.status)) {
+        throw new Error("Status akaun semasa tidak sah.");
+      }
+
+      if (userData.status === targetStatus) {
+        throw new Error("Akaun sudah berada dalam status " + targetStatus + ".");
+      }
+
+      if (profileSnapshot.exists()) {
+        const profileData = profileSnapshot.data();
+
+        if (profileData.uid !== uid) {
+          throw new Error("UID profil direktori tidak sepadan.");
+        }
+
+        transaction.update(profileRef, {
+          status: targetStatus === "ACTIVE" ? "ACTIVE" : "INACTIVE"
+        });
+      } else if (targetStatus === "ACTIVE") {
+        transaction.set(profileRef, {
+          uid: uid,
+          displayName: userData.name || "Pengguna KARDRIVER",
+          photoURL: null,
+          status: "ACTIVE",
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      transaction.update(userRef, {
+        status: targetStatus
+      });
+    });
+
+    return {
+      success: true,
+      uid: uid,
+      status: targetStatus
+    };
+
+  } catch (error) {
+    console.error("Admin user status update failed:", error);
+    throw error;
+  }
+};
