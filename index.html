@@ -286,6 +286,130 @@ body{padding-bottom:90px;}
  #obd2Page .home-shortcut>span{font-size:24px}
 }
 
+
+/* KARDRIVER MOBILE UI V2 */
+@media (max-width: 600px) {
+  body {
+    padding-bottom: calc(125px + env(safe-area-inset-bottom));
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  header {
+    padding: 13px 15px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  #homePage .home-banner {
+    height: 190px;
+    border-radius: 14px;
+    margin-bottom: 13px;
+  }
+
+  #homePage .home-banner-content {
+    left: 12px;
+    max-width: 82%;
+  }
+
+  #homePage .home-shortcuts {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px;
+    margin: 12px 0 16px;
+  }
+
+  #homePage .home-shortcut {
+    min-height: 94px;
+    padding: 9px 3px;
+    gap: 6px;
+  }
+
+  #homePage .home-shortcut > span {
+    font-size: 27px;
+  }
+
+  #homePage .home-shortcut b {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  #homePage .home-shortcut small {
+    display: block;
+    font-size: 9px;
+    line-height: 1.25;
+    color: #9cc8dd;
+  }
+
+  #homePage .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  #homePage .grid > *,
+  #homePage #vehicleDashboard > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  #homePage button,
+  #homePage .action {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  #homePage .stat {
+    min-width: 0;
+    padding: 12px 10px;
+  }
+
+  #homePage .stat strong {
+    font-size: 21px;
+  }
+
+  #homePage #vehicleDashboard .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  #homePage .card {
+    padding: 13px;
+  }
+
+  #homePage .home-intro {
+    padding: 22px 15px;
+    min-height: 0;
+  }
+
+  nav.smart-nav .navbtn {
+    min-height: 58px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  #homePage .home-shortcuts {
+    gap: 8px;
+  }
+
+  #homePage .home-shortcut {
+    min-height: 94px;
+  }
+
+  #homePage .home-shortcut > span {
+    font-size: 30px;
+  }
+
+  #homePage .home-shortcut b {
+    font-size: 10px;
+  }
+}
+
 </style>
   <link rel="stylesheet" href="assets/tron.css">
 <link rel="stylesheet" href="css/garage.css">
