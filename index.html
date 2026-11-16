@@ -148,9 +148,95 @@ body{padding-bottom:90px;}
 #homePage .home-coming small{color:#e9b949;font-weight:bold}
 @media(max-width:360px){#homePage .home-shortcuts{gap:7px}#homePage .home-shortcut{min-height:96px}#homePage .home-shortcut b{font-size:10px}#homePage .home-banner{height:200px}}
 
+
+/* KARDRIVER TRON NINE MODULE CARDS V1 */
+#homePage .home-shortcuts{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:11px;
+ margin:18px 0 22px;
+}
+
+#homePage .home-shortcut{
+ position:relative;
+ isolation:isolate;
+ min-width:0;
+ min-height:112px;
+ padding:14px 4px 11px;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:8px;
+ overflow:hidden;
+ border:1px solid #159fca;
+ border-radius:3px 15px 3px 15px;
+ background:
+  linear-gradient(145deg,rgba(13,38,65,.97),rgba(3,12,27,.98));
+ color:#fff;
+ text-align:center;
+ box-shadow:
+  inset 0 0 16px rgba(34,211,238,.12),
+  0 0 9px rgba(34,211,238,.17);
+ clip-path:polygon(0 0,88% 0,100% 16%,100% 100%,12% 100%,0 84%);
+ transition:transform .18s ease,box-shadow .18s ease;
+}
+
+#homePage .home-shortcut::before{
+ content:"";
+ position:absolute;
+ inset:3px;
+ z-index:-1;
+ border:1px solid rgba(34,211,238,.18);
+ background:linear-gradient(135deg,rgba(34,211,238,.08),transparent 65%);
+}
+
+#homePage .home-shortcut>span{
+ font-size:30px;
+ line-height:1;
+ filter:drop-shadow(0 0 7px currentColor);
+}
+
+#homePage .home-shortcut b{
+ color:#fff;
+ font-size:11px;
+ font-weight:900;
+ font-style:italic;
+ letter-spacing:.45px;
+ line-height:1.2;
+ text-shadow:0 0 8px currentColor;
+}
+
+#homePage .home-shortcut small{
+ display:none;
+}
+
+#homePage .home-shortcut:active{
+ transform:scale(.96);
+ box-shadow:0 0 20px rgba(34,211,238,.55);
+}
+
+#homePage .home-shortcut:nth-child(1){border-color:#18c9ff;color:#18c9ff}
+#homePage .home-shortcut:nth-child(2){border-color:#20e6e0;color:#20e6e0}
+#homePage .home-shortcut:nth-child(3){border-color:#20aaff;color:#20aaff}
+#homePage .home-shortcut:nth-child(4){border-color:#a77aff;color:#a77aff}
+#homePage .home-shortcut:nth-child(5){border-color:#ff9b35;color:#ff9b35}
+#homePage .home-shortcut:nth-child(6){border-color:#ff4e78;color:#ff4e78}
+#homePage .home-shortcut:nth-child(7){border-color:#e7c84a;color:#e7c84a}
+#homePage .home-shortcut:nth-child(8){border-color:#28d98a;color:#28d98a}
+#homePage .home-shortcut:nth-child(9){border-color:#b18cff;color:#b18cff}
+
+@media(max-width:360px){
+ #homePage .home-shortcuts{gap:7px}
+ #homePage .home-shortcut{min-height:99px;padding:10px 2px}
+ #homePage .home-shortcut>span{font-size:26px}
+ #homePage .home-shortcut b{font-size:9px}
+}
+
 </style>
   <link rel="stylesheet" href="assets/tron.css">
 <link rel="stylesheet" href="css/garage.css">
+<link rel="stylesheet" href="css/car-health.css">
 <link rel="stylesheet" href="css/community.css">
 </head>
 <body>
@@ -203,13 +289,17 @@ body{padding-bottom:90px;}
 
  </div>
  <div class="home-shortcuts">
-  <button class="home-shortcut" onclick="go('garage')"><span>🚘</span><b>GARAGE</b><small>My Vehicle</small></button>
+  <button class="home-shortcut" onclick="go('garage')"><span>🚘</span><b>MY GARAGE</b><small>My Vehicles</small></button>
   <button class="home-shortcut" onclick="go('service')"><span>🛠️</span><b>SERVICE</b><small>Maintenance</small></button>
-  <button class="home-shortcut" onclick="go('courses')"><span>🎓</span><b>ACADEMY</b><small>Learn & Training</small></button>
-  <button class="home-shortcut" onclick="go('dtc')"><span>🔍</span><b>DTC DATABASE</b><small>Fault Codes</small></button>
-  <button class="home-shortcut" onclick="go('aiMechanic')"><span>🤖</span><b>AI MECHANIC</b><small>DIAGNOSIS AI</small></button>
-  <button class="home-shortcut" onclick="openCommunity()"><span>👥</span><b>COMMUNITY</b><small>Join Community</small></button>
+  <button class="home-shortcut" onclick="go('obd2')"><span>🔌</span><b>OBD2 SCANNER</b><small>Scan & Diagnose</small></button>
+  <button class="home-shortcut" onclick="go('aiMechanic')"><span>🤖</span><b>AI MECHANIC</b><small>AI Diagnosis</small></button>
+  <button class="home-shortcut" onclick="go('community')"><span>👥</span><b>COMMUNITY</b><small>Connect & Share</small></button>
+  <button class="home-shortcut" onclick="go('health')"><span>❤️</span><b>CAR HEALTH</b><small>Health Score</small></button>
+  <button class="home-shortcut" onclick="go('report')"><span>📊</span><b>REPORT</b><small>Vehicle Reports</small></button>
+  <button class="home-shortcut" onclick="go('community'); communityNavigate('market')"><span>🛒</span><b>MARKETPLACE</b><small>Parts & Accessories</small></button>
+  <button class="home-shortcut" onclick="go('profile')"><span>👑</span><b>MEMBERSHIP</b><small>Free · Pro · Master</small></button>
  </div>
+ <div id="homeModulePanel" class="card hidden"></div>
  <div class="hero home-intro">
   <div class="eyebrow">AUTOMOTIVE DIAGNOSTIC LEARNING</div>
   <h1>Learn. Diagnose. Repair.</h1>
@@ -335,6 +425,41 @@ body{padding-bottom:90px;}
   <h2>SEJARAH SERVIS</h2>
   <div id="serviceRecordList">Belum ada rekod servis.</div>
  </div>
+</section>
+
+<section id="healthPage" class="hidden">
+ <div class="garage-hero">
+  <div class="eyebrow">KARDRIVER AUTOHUB</div>
+  <h2>❤️ CAR HEALTH SCORE</h2>
+  <p>Semak dan pantau tahap kesihatan kenderaan anda.</p>
+ </div>
+ <div id="carHealthContent"></div>
+</section>
+
+<section id="obd2Page" class="hidden">
+ <div class="garage-hero">
+  <div class="eyebrow">KARDRIVER AUTOHUB</div>
+  <h2>🔌 OBD2 SCANNER CENTER</h2>
+  <p>Pusat diagnostik dan pembelajaran automotif.</p>
+ </div>
+ <div class="home-shortcuts">
+  <button class="home-shortcut home-coming" disabled>
+   <span>📡</span><b>LIVE SCAN</b><small>ELM327 · Coming Soon</small>
+  </button>
+  <button class="home-shortcut" onclick="go('courses')">
+   <span>📚</span><b>COURSES</b><small>OBD2 Training</small>
+  </button>
+  <button class="home-shortcut" onclick="go('courses')">
+   <span>🎓</span><b>ACADEMY</b><small>Learning Center</small>
+  </button>
+  <button class="home-shortcut" onclick="go('dtc')">
+   <span>🔍</span><b>DTC DATABASE</b><small>Fault Codes</small>
+  </button>
+  <button class="home-shortcut" onclick="go('quiz')">
+   <span>📝</span><b>QUIZ</b><small>Test Your Knowledge</small>
+  </button>
+ </div>
+ <button class="community-back" onclick="go('home')">← BACK TO HOME</button>
 </section>
 
 <section id="coursesPage" class="hidden">
@@ -545,6 +670,17 @@ body{padding-bottom:90px;}
  <button class="action" onclick="go('home')">KEMBALI KE HOME / BACK TO HOME</button>
 </section>
 
+<!-- KARDRIVER VEHICLE REPORT PAGE V1 -->
+<section id="reportPage" class="hidden">
+ <div class="garage-hero">
+  <div class="eyebrow">KARDRIVER AUTOHUB</div>
+  <h2>📊 VEHICLE REPORT</h2>
+  <p>Laporan kenderaan berdasarkan rekod yang disimpan.</p>
+ </div>
+ <div id="vehicleReportContent"></div>
+ <button class="action" onclick="go('home')">KEMBALI KE HOME</button>
+</section>
+
 <section id="communityPage" class="hidden">
  <div class="community-header">
   <div class="community-brand">KARDRIVER <span>COMMUNITY</span></div>
@@ -643,6 +779,8 @@ function go(page){
  if(page!=="community")closeMore();
  if(page==="garage")renderGarage();
  if(page==="service")renderService();
+ if(page==="health" && window.renderCarHealth)window.renderCarHealth();
+if(page==="report" && window.renderVehicleReport)window.renderVehicleReport();
  if(page==="dtc")renderDTC();
  if(page==="aiMechanic")renderAiHistory();
  if(page==="profile")updateStats();
@@ -1741,6 +1879,8 @@ function checkSensorQuiz(){
 </script>
 <script src="js/garage.js"></script>
 <script src="js/service.js"></script>
+<script src="js/car-health.js"></script>
+<script src="js/vehicle-report.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/auth.js"></script>
 <script type="module" src="js/firebase-auth.js"></script>

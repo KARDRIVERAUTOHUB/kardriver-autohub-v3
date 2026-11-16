@@ -1,0 +1,37 @@
+.health-score-card {
+  text-align: center;
+  border: 1px solid rgba(34, 211, 238, .45);
+  background: linear-gradient(145deg, #071a2b, #0b2940);
+}
+
+.health-score {
+  font-size: 76px;
+  line-height: 1.2;
+  font-weight: 900;
+  color: #22d3ee;
+  text-shadow: 0 0 22px rgba(34, 211, 238, .55);
+  margin: 12px 0;
+}
+
+.health-item {
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(34, 211, 238, .15);
+}
+
+.health-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.health-item select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.health-disclaimer {
+  color: #a8c5d8;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 15px;
+}
