@@ -176,12 +176,156 @@
 
       <div class="card">
         <p class="muted">Laporan dijana daripada rekod tempatan KARDRIVER AUTOHUB pada ${new Date().toLocaleString("ms-MY")}.</p>
-        <button class="action" onclick="window.print()">CETAK / SIMPAN PDF</button>
+        <button class="action" onclick="printVehicleReport()">CETAK / SIMPAN PDF</button>
       </div>`;
+  }
+
+
+  function printVehicleReport() {
+    const source = document.getElementById("selectedVehicleReport");
+    const selector = document.getElementById("reportVehicle");
+
+    if (!source || !source.innerHTML.trim()) {
+      alert("Tiada laporan untuk dicetak.");
+      return;
+    }
+
+    const selectedName = selector
+      ? selector.options[selector.selectedIndex]?.textContent.trim()
+      : "Vehicle Report";
+
+    const reportCopy = source.cloneNode(true);
+
+    // Buang kad kawalan cetakan sahaja daripada salinan PDF.
+    reportCopy.querySelectorAll("button").forEach(button => {
+      const card = button.closest(".card");
+      if (card) card.remove();
+      else button.remove();
+    });
+
+    reportCopy.querySelectorAll("select, label").forEach(el => el.remove());
+    const reportHTML = reportCopy.innerHTML;
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      alert("Benarkan pop-up browser untuk mencetak laporan.");
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KARDRIVER Vehicle Report</title>
+<style>
+@page { size: A4; margin: 14mm; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: #172536;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+  line-height: 1.45;
+}
+.report-header {
+  border-bottom: 3px solid #087f9e;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+.brand {
+  color: #087f9e;
+  font-size: 19pt;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.subtitle { color: #536779; font-size: 9pt; }
+.report-title {
+  margin-top: 12px;
+  font-size: 16pt;
+  font-weight: 800;
+}
+.card {
+  border: 1px solid #d6e0e8;
+  border-radius: 7px;
+  padding: 13px;
+  margin: 0 0 12px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+h2 { font-size: 15pt; margin: 5px 0 10px; }
+h3 {
+  color: #087f9e;
+  font-size: 11pt;
+  margin: 0 0 10px;
+}
+h4 { margin: 0 0 6px; font-size: 10pt; }
+p { margin: 5px 0; }
+.garage-meta { line-height: 1.7; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  margin-bottom: 12px;
+}
+.stat {
+  border: 1px solid #d6e0e8;
+  border-radius: 7px;
+  padding: 12px;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+.stat strong { display: block; font-size: 16pt; color: #087f9e; }
+.muted { color: #647789; font-size: 9pt; }
+.eyebrow { color: #087f9e; font-size: 8pt; font-weight: bold; }
+.garage-car {
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e8ee;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+.garage-car:last-child { border-bottom: 0; }
+button, .action, select, label { display: none !important; }
+.report-footer {
+  margin-top: 20px;
+  padding-top: 9px;
+  border-top: 1px solid #d6e0e8;
+  color: #647789;
+  font-size: 8pt;
+}
+@media print {
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<header class="report-header">
+  <div class="brand">KARDRIVER AUTOHUB</div>
+  <div class="subtitle">AUTOMOTIVE VEHICLE RECORD & HEALTH REPORT</div>
+  <div class="report-title">VEHICLE REPORT</div>
+  <div class="report-vehicle">${escapeHTML(selectedName)}</div>
+</header>
+<main>${reportHTML}</main>
+<footer class="report-footer">
+  Dijana pada ${new Date().toLocaleString("ms-MY")} ·
+  KARDRIVER AUTOHUB · Rekod berdasarkan data yang disimpan dalam aplikasi.
+</footer>
+<script>
+window.onload = function() {
+  window.focus();
+  window.print();
+};
+<\/script>
+</body>
+</html>`);
+    printWindow.document.close();
   }
 
   window.renderVehicleReport = renderVehicleReport;
   window.renderSelectedVehicleReport = renderSelectedVehicleReport;
+  window.printVehicleReport = printVehicleReport;
 
   console.log("KARDRIVER VEHICLE REPORT MODULE READY");
 })();
