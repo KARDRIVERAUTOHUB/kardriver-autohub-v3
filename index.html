@@ -233,6 +233,59 @@ body{padding-bottom:90px;}
  #homePage .home-shortcut b{font-size:9px}
 }
 
+
+/* KARDRIVER OBD2 SCANNER CENTER V2 */
+#obd2Page .home-shortcuts{
+ display:grid !important;
+ grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+ gap:10px;
+ margin:14px 0 18px;
+}
+#obd2Page .home-shortcuts > .home-shortcut{
+ min-width:0;
+ min-height:94px;
+ padding:10px 6px;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ border:1px solid #159fca;
+ border-radius:4px 13px 4px 13px;
+ background:linear-gradient(145deg,rgba(13,38,65,.97),rgba(3,12,27,.98));
+ color:#20d9ff;
+ text-align:center;
+ box-shadow:inset 0 0 12px rgba(34,211,238,.10),0 0 8px rgba(34,211,238,.12);
+}
+#obd2Page .home-shortcut>span{
+ font-size:27px;
+ line-height:1;
+}
+#obd2Page .home-shortcut b{
+ font-size:10px;
+ font-weight:900;
+ font-style:italic;
+ letter-spacing:.35px;
+ line-height:1.25;
+}
+#obd2Page .home-shortcut small{
+ display:block;
+ font-size:9px;
+ color:#9cc8dd;
+}
+#obd2Page .home-shortcut:active{
+ transform:scale(.97);
+}
+#obd2Page .home-shortcut:disabled{
+ opacity:.65;
+ cursor:not-allowed;
+}
+@media(max-width:360px){
+ #obd2Page .home-shortcuts{gap:8px}
+ #obd2Page .home-shortcut{min-height:88px;padding:8px 4px}
+ #obd2Page .home-shortcut>span{font-size:24px}
+}
+
 </style>
   <link rel="stylesheet" href="assets/tron.css">
 <link rel="stylesheet" href="css/garage.css">
