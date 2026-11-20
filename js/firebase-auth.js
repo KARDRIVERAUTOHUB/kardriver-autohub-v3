@@ -204,15 +204,65 @@ window.firebaseSetActiveRole = async function(newRole) {
 
 // Tukar nama profil
 window.firebaseUpdateName = async function(name) {
+  const user = auth.currentUser;
+  let stage = "VALIDATION";
+
   try {
-    const user = auth.currentUser;
     if (!user) throw new Error("Pengguna belum login.");
 
-    await updateProfile(user, { displayName: name });
-    alert("Nama profil berjaya dikemas kini.");
-    return true;
+    const cleanName = String(name || "").trim();
+    if (!cleanName || cleanName.length > 40) {
+      throw new Error("Nama mesti mengandungi 1 hingga 40 aksara.");
+    }
+
+    const userRef = doc(db, "users", user.uid);
+    const profileRef = doc(db, "community_profiles", user.uid);
+    const previousName = user.displayName || "Pengguna KARDRIVER";
+
+    stage = "AUTH_PROFILE";
+    await updateProfile(user, { displayName: cleanName });
+
+    try {
+      stage = "FIRESTORE_TRANSACTION";
+      await runTransaction(db, async transaction => {
+        const latestUser = await transaction.get(userRef);
+        const latestProfile = await transaction.get(profileRef);
+
+        if (!latestUser.exists() || latestUser.data().status !== "ACTIVE") {
+          throw new Error("Akaun tidak aktif atau profil pengguna tidak ditemui.");
+        }
+
+        if (
+          !latestProfile.exists() ||
+          latestProfile.data().uid !== user.uid ||
+          latestProfile.data().status !== "ACTIVE"
+        ) {
+          throw new Error("Profil Community tidak aktif atau tidak ditemui.");
+        }
+
+        transaction.update(userRef, { name: cleanName });
+        transaction.update(profileRef, {
+          displayName: cleanName,
+          updatedAt: serverTimestamp()
+        });
+      });
+
+      alert("Nama profil berjaya dikemas kini dan disegerakkan.");
+      return true;
+    } catch (error) {
+      const originalError = error;
+      stage = "AUTH_ROLLBACK";
+      try {
+        await updateProfile(user, { displayName: previousName });
+      } catch (rollbackError) {
+        console.error("Name rollback failed:", rollbackError);
+      }
+      throw originalError;
+    }
   } catch (error) {
-    alert("Gagal mengemas kini nama: " + error.message);
+    console.error("Profile name sync failed at " + stage + ":", error);
+    const code = error.code ? " [" + error.code + "]" : "";
+    alert("Gagal mengemas kini nama (" + stage + ")" + code + ": " + error.message);
     return false;
   }
 };
