@@ -158,6 +158,8 @@
     ` : view === "directory" ? `
       <div class="community-info">Memuatkan senarai ahli aktif...</div>
       <div id="communityDirectory"></div>
+    ` : view === "chat" ? `
+      <div id="communityChat"></div>
     ` : view === "jana" ? `
       <div class="community-grid">
         <button class="community-card"><span class="community-icon">📘</span><strong>BELAJAR FOREX</strong><small>Pembelajaran forex</small></button>
@@ -171,7 +173,14 @@
     content.innerHTML += `<button class="community-back" onclick="communityNavigate('home')">← KEMBALI KE COMMUNITY</button>`;
     document.querySelectorAll("#communityPage .community-nav button").forEach(button => button.classList.toggle("active", button.dataset.view === view));
 
+    if (view !== "chat" && typeof window.stopCommunityChat === "function") {
+      window.stopCommunityChat();
+    }
+
     if (view === "directory") loadCommunityDirectory();
+    if (view === "chat" && typeof window.renderCommunityChat === "function") {
+      window.renderCommunityChat();
+    }
   }
   window.communityNavigate = renderCommunityView;
   window.openCommunity = function () {

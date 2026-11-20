@@ -20,7 +20,10 @@ import {
   query,
   where,
   serverTimestamp,
-  runTransaction
+  runTransaction,
+  addDoc,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -685,6 +688,149 @@ window.getCommunityDirectory = async function() {
   }).sort(function(a, b) {
     return a.displayName.localeCompare(b.displayName);
   });
+};
+
+
+// LIVE CHAT: PASTIKAN PROFIL KOMUNITI WUJUD DAN AKTIF
+window.firebaseEnsureCommunityProfile = async function() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login untuk menggunakan LIVE CHAT.");
+
+  const userRef = doc(db, "users", user.uid);
+  const profileRef = doc(db, "community_profiles", user.uid);
+
+  const userSnapshot = await getDoc(userRef);
+  if (!userSnapshot.exists() || userSnapshot.data().status !== "ACTIVE") {
+    throw new Error("Akaun tidak aktif atau profil pengguna tidak sah.");
+  }
+
+  const userData = userSnapshot.data();
+  const profileSnapshot = await getDoc(profileRef);
+
+  if (profileSnapshot.exists()) {
+    const profile = profileSnapshot.data();
+    if (profile.uid !== user.uid || profile.status !== "ACTIVE") {
+      throw new Error("Profil komuniti tidak aktif. Sila hubungi Admin.");
+    }
+    return {
+      uid: user.uid,
+      displayName: profile.displayName,
+      photoURL: profile.photoURL || null,
+      badge: ["SuperAdmin", "Admin"].includes(profile.badge) ? profile.badge : null
+    };
+  }
+
+  const profileData = {
+    uid: user.uid,
+    displayName: userData.name || "Pengguna KARDRIVER",
+    photoURL: user.photoURL || null,
+    status: "ACTIVE",
+    updatedAt: serverTimestamp()
+  };
+
+  await setDoc(profileRef, profileData);
+
+  return {
+    uid: user.uid,
+    displayName: profileData.displayName,
+    photoURL: profileData.photoURL
+  };
+};
+
+// LIVE CHAT: FIRESTORE REALTIME API
+const KARDRIVER_CHAT_CHANNELS = ["general", "automotive", "mechanic", "forex"];
+
+window.firebaseChatSubscribe = async function(channelId, onMessages, onError) {
+  if (!KARDRIVER_CHAT_CHANNELS.includes(channelId)) {
+    throw new Error("Channel LIVE CHAT tidak sah.");
+  }
+  if (typeof onMessages !== "function") {
+    throw new Error("Callback mesej tidak sah.");
+  }
+
+  await window.firebaseEnsureCommunityProfile();
+
+  const messagesQuery = query(
+    collection(db, "chat_rooms", channelId, "messages"),
+    orderBy("createdAt", "desc"),
+    limit(50)
+  );
+
+  return onSnapshot(
+    messagesQuery,
+    function(snapshot) {
+      const messages = snapshot.docs.map(function(item) {
+        return { id: item.id, ...item.data() };
+      }).reverse();
+      onMessages(messages);
+    },
+    function(error) {
+      console.error("LIVE CHAT subscription failed:", error);
+      if (typeof onError === "function") onError(error);
+    }
+  );
+};
+
+window.firebaseChatSendMessage = async function(channelId, messageText) {
+  if (!KARDRIVER_CHAT_CHANNELS.includes(channelId)) {
+    throw new Error("Channel LIVE CHAT tidak sah.");
+  }
+
+  const text = String(messageText || "").trim();
+  if (!text || text.length > 3000) {
+    throw new Error("Mesej mesti mengandungi 1 hingga 3000 aksara.");
+  }
+
+  const profile = await window.firebaseEnsureCommunityProfile();
+
+  const messageRef = await addDoc(
+    collection(db, "chat_rooms", channelId, "messages"),
+    {
+      senderUid: profile.uid,
+      senderName: profile.displayName,
+      text: text,
+      type: "MESSAGE",
+      createdAt: serverTimestamp()
+    }
+  );
+
+  return { success: true, messageId: messageRef.id };
+};
+
+// COMMUNITY DIRECTORY: REALTIME SUBSCRIPTION
+window.subscribeCommunityDirectory = function(onMembers, onError) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login untuk melihat direktori ahli.");
+  if (typeof onMembers !== "function") {
+    throw new Error("Callback direktori tidak sah.");
+  }
+
+  const directoryQuery = query(
+    collection(db, "community_profiles"),
+    where("status", "==", "ACTIVE")
+  );
+
+  return onSnapshot(
+    directoryQuery,
+    function(snapshot) {
+      const members = snapshot.docs.map(function(item) {
+        const data = item.data();
+        return {
+          uid: item.id,
+          displayName: data.displayName || "Pengguna KARDRIVER",
+          photoURL: data.photoURL || null,
+          badge: ["SuperAdmin", "Admin"].includes(data.badge) ? data.badge : null
+        };
+      }).sort(function(a, b) {
+        return a.displayName.localeCompare(b.displayName);
+      });
+      onMembers(members);
+    },
+    function(error) {
+      console.error("COMMUNITY DIRECTORY realtime failed:", error);
+      if (typeof onError === "function") onError(error);
+    }
+  );
 };
 
 console.log("KARDRIVER COMMUNITY DIRECTORY READY");
