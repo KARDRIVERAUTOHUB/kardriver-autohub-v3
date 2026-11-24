@@ -332,6 +332,51 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // KARDRIVER LIVE PRESENCE V1
+    match /community_presence_sessions/{sessionId} {
+      allow get: if isActiveUser()
+        && request.auth.uid == resource.data.uid;
+
+      allow list: if false;
+
+      allow create: if isActiveUser()
+        && sessionId.matches('^[a-zA-Z0-9_-]{10,80}$')
+        && request.resource.data.keys().hasAll([
+          "uid", "sessionId", "state",
+          "lastHeartbeat", "createdAt", "updatedAt"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "uid", "sessionId", "state",
+          "lastHeartbeat", "createdAt", "updatedAt"
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.sessionId == sessionId
+        && request.resource.data.state == "ONLINE"
+        && request.resource.data.lastHeartbeat == request.time
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isActiveUser()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.sessionId == resource.data.sessionId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.keys().hasOnly([
+          "uid", "sessionId", "state",
+          "lastHeartbeat", "createdAt", "updatedAt"
+        ])
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly([
+            "state", "lastHeartbeat", "updatedAt"
+          ])
+        && request.resource.data.state in ["ONLINE", "AWAY"]
+        && request.resource.data.lastHeartbeat == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isActiveUser()
+        && resource.data.uid == request.auth.uid;
+    }
+
     // Community Directory: Spark-only secure profile access
     match /community_profiles/{uid} {
       function userPath() {

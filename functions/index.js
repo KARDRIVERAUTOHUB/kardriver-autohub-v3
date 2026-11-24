@@ -10,6 +10,7 @@ initializeApp();
 
 const db = getFirestore();
 const REGION = "asia-southeast1";
+const dtcDatabase = require("./dtc-data");
 
 // Semak identiti daripada Firebase Authentication.
 // Jangan terima UID, nama atau gambar daripada input pengguna.
@@ -276,5 +277,171 @@ exports.scheduledMembershipExpiryV2 = onSchedule(
     );
 
     return { success: true, totalExpired };
+  }
+);
+
+// ============================================================
+// KARDRIVER LIVE PRESENCE AUTO-CLEANUP V1
+// Buang sesi yang tidak menerima heartbeat selama 3 minit.
+// ============================================================
+
+exports.scheduledPresenceCleanupV1 = onSchedule(
+  {
+    schedule: "*/5 * * * *",
+    timeZone: "Asia/Kuala_Lumpur",
+    region: REGION,
+    maxInstances: 1,
+    timeoutSeconds: 540
+  },
+  async () => {
+    const cutoff = Date.now() - (3 * 60 * 1000);
+    const batchSize = 200;
+    let totalRemoved = 0;
+
+    while (true) {
+      const snapshot = await db
+        .collection("community_presence_sessions")
+        .where("lastHeartbeat", "<=", new Date(cutoff))
+        .orderBy("lastHeartbeat", "asc")
+        .limit(batchSize)
+        .get();
+
+      if (snapshot.empty) break;
+
+      let removedThisBatch = 0;
+
+      for (const sessionDoc of snapshot.docs) {
+        const removed = await db.runTransaction(async (transaction) => {
+          const currentSnap = await transaction.get(sessionDoc.ref);
+
+          if (!currentSnap.exists) return false;
+
+          const data = currentSnap.data();
+          const heartbeat = data.lastHeartbeat;
+
+          if (
+            !heartbeat ||
+            typeof heartbeat.toMillis !== "function" ||
+            heartbeat.toMillis() > cutoff
+          ) {
+            return false;
+          }
+
+          transaction.delete(sessionDoc.ref);
+          return true;
+        });
+
+        if (removed) {
+          removedThisBatch++;
+          totalRemoved++;
+        }
+      }
+
+      console.log(
+        "Presence Auto-Cleanup: diperiksa",
+        snapshot.size,
+        "| dipadam",
+        removedThisBatch
+      );
+    }
+
+    console.log(
+      "Presence Auto-Cleanup V1 selesai. Jumlah sesi dipadam:",
+      totalRemoved
+    );
+
+    return { success: true, totalRemoved };
+  }
+);
+
+
+// ============================================================
+// KARDRIVER DTC DETAILS API V1
+// Akses kandungan berdasarkan Membership yang disahkan backend.
+// ============================================================
+
+exports.getDTCDetails = onCall(
+  { region: REGION },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sila login terlebih dahulu.");
+    }
+
+    const code = String(request.data?.code || "").trim().toUpperCase();
+
+    if (!/^[PBCU][0-9A-F]{4}$/.test(code)) {
+      throw new HttpsError("invalid-argument", "Format kod DTC tidak sah.");
+    }
+
+    const dtc = dtcDatabase.find((item) => item.c === code);
+    if (!dtc) {
+      throw new HttpsError("not-found", "Kod DTC tidak ditemui.");
+    }
+
+    const uid = request.auth.uid;
+    const userRef = db.collection("users").doc(uid);
+
+    const access = await db.runTransaction(async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+
+      if (!userSnap.exists || userSnap.data().status !== "ACTIVE") {
+        throw new HttpsError(
+          "permission-denied",
+          "Akaun tidak aktif atau profil tidak sah."
+        );
+      }
+
+      const userData = userSnap.data();
+      const plan = userData.membership || "FREE";
+      const membershipStatus = userData.membershipStatus || "INACTIVE";
+
+      if (plan === "FREE") {
+        return { tier: "FREE", membership: "FREE" };
+      }
+
+      if (
+        !["PRO", "MASTERCLASS_ELITE"].includes(plan) ||
+        membershipStatus !== "ACTIVE"
+      ) {
+        return { tier: "FREE", membership: "FREE" };
+      }
+
+      const expiresAt = userData.membershipExpiresAt;
+
+      if (!expiresAt || typeof expiresAt.toMillis !== "function") {
+        return { tier: "FREE", membership: "FREE" };
+      }
+
+      if (expiresAt.toMillis() <= Date.now()) {
+        transaction.update(userRef, {
+          membership: "FREE",
+          membershipStatus: "EXPIRED",
+          membershipBillingCycle: null,
+          membershipExpiredAt: FieldValue.serverTimestamp()
+        });
+
+        return { tier: "FREE", membership: "FREE", expired: true };
+      }
+
+      return { tier: plan, membership: plan };
+    });
+
+    const result = {
+      code: dtc.c,
+      name: dtc.n,
+      tier: access.tier,
+      membership: access.membership,
+      free: dtc.free
+    };
+
+    if (access.tier === "PRO" || access.tier === "MASTERCLASS_ELITE") {
+      result.pro = dtc.pro;
+    }
+
+    if (access.tier === "MASTERCLASS_ELITE") {
+      result.elite = dtc.elite;
+    }
+
+    return result;
   }
 );

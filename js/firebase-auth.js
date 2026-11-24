@@ -8,6 +8,7 @@ import {
   signOut,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
@@ -47,6 +48,20 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app, "asia-southeast1");
 
+// LOGOUT SELAMAT: HENTIKAN LIVE PRESENCE SEBELUM FIREBASE LOGOUT
+window.firebaseSafeSignOut = async function() {
+  if (typeof window.stopCommunityPresence === "function") {
+    try {
+      await window.stopCommunityPresence();
+    } catch (error) {
+      console.error("Presence cleanup sebelum logout gagal:", error);
+    }
+  }
+
+  await signOut(auth);
+};
+
+
 if (useFirebaseEmulators) {
   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
   connectFirestoreEmulator(db, "127.0.0.1", 8080);
@@ -80,6 +95,7 @@ window.saveUserProfile = async function(user) {
 };
 
 let pendingRegistrationProfile = null;
+let pendingLoginEmailVerification = null;
 
 // Daftar akaun baharu
 window.firebaseRegister = async function(name, email, password) {
@@ -95,20 +111,44 @@ window.firebaseRegister = async function(name, email, password) {
     await updateProfile(result.user, { displayName: name });
 
     const profileSaved = await window.saveUserProfile(result.user);
-    resolveProfileReady(profileSaved);
 
     if (!profileSaved) {
-      alert("Akaun berjaya dibuat, tetapi profil gagal disimpan. Sila hubungi Admin.");
-      await signOut(auth);
+      resolveProfileReady(false);
+      alert("Akaun berjaya dibuat tetapi profil gagal disimpan. Sila hubungi Admin.");
+      await window.firebaseSafeSignOut();
       return false;
     }
 
-    alert("Pendaftaran berjaya! Selamat datang ke KARDRIVER AUTOHUB.");
+    await sendEmailVerification(result.user);
+
+    // Tahan auth listener daripada membuka dashboard sebelum pengesahan.
+    resolveProfileReady(false);
+
+    alert("Pendaftaran berjaya! Pautan pengesahan telah dihantar ke " +
+      email + ". Sila semak Inbox atau Spam dan sahkan email sebelum LOGIN.");
+
+    await window.firebaseSafeSignOut();
     return true;
+
   } catch (error) {
     resolveProfileReady(false);
-    alert("Pendaftaran gagal: " + error.message);
+    console.error("Registration failed:", error);
+
+    const messages = {
+      "auth/email-already-in-use": "Email ini sudah berdaftar. Sila LOGIN.",
+      "auth/invalid-email": "Format email tidak sah.",
+      "auth/weak-password": "Kata laluan mestilah sekurang-kurangnya 6 aksara.",
+      "auth/operation-not-allowed": "Pendaftaran email belum diaktifkan dalam Firebase."
+    };
+
+    if (auth.currentUser) {
+      await window.firebaseSafeSignOut();
+    }
+
+    alert("Pendaftaran gagal: " +
+      (messages[error.code] || error.message));
     return false;
+
   } finally {
     if (pendingRegistrationProfile?.promise === profileReadyPromise) {
       pendingRegistrationProfile = null;
@@ -116,21 +156,52 @@ window.firebaseRegister = async function(name, email, password) {
   }
 };
 
-// Login pengguna
+// Login pengguna: wajib sahkan email sebelum akses aplikasi
 window.firebaseLogin = async function(email, password) {
+  let resolveEmailCheck;
+  const emailCheckPromise = new Promise(resolve => {
+    resolveEmailCheck = resolve;
+  });
+  pendingLoginEmailVerification = { promise: emailCheckPromise };
+
   try {
-    await signInWithEmailAndPassword(auth, email, password);
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    await result.user.reload();
+
+    if (!result.user.emailVerified) {
+      let sent = false;
+      try {
+        await sendEmailVerification(result.user);
+        sent = true;
+      } catch (e) {
+        console.error("Gagal hantar semula pengesahan:", e);
+      }
+
+      resolveEmailCheck(false);
+      await window.firebaseSafeSignOut();
+      alert(sent
+        ? "Email belum disahkan. Pautan pengesahan baharu telah dihantar. Sila sahkan sebelum login."
+        : "Email belum disahkan. Sila semak email terdahulu atau cuba lagi kemudian.");
+      return false;
+    }
+
+    resolveEmailCheck(true);
     return true;
   } catch (error) {
+    resolveEmailCheck(false);
     alert("Login gagal: " + error.message);
     return false;
+  } finally {
+    if (pendingLoginEmailVerification?.promise === emailCheckPromise) {
+      pendingLoginEmailVerification = null;
+    }
   }
 };
 
 // Logout pengguna
 window.firebaseLogout = async function() {
   try {
-    await signOut(auth);
+    await window.firebaseSafeSignOut();
   } catch (error) {
     alert("Logout gagal: " + error.message);
   }
@@ -580,6 +651,25 @@ onAuthStateChanged(auth, async function(user) {
         if (!profileReady || currentVersion !== authStateVersion) return;
       }
 
+      const loginPending = pendingLoginEmailVerification;
+      if (loginPending) {
+        const verified = await loginPending.promise;
+        if (!verified || currentVersion !== authStateVersion) return;
+      }
+
+      await user.reload();
+      if (!user.emailVerified) {
+        try {
+          await sendEmailVerification(user);
+        } catch (e) {
+          console.error("Gagal hantar pautan pengesahan:", e);
+        }
+        if (currentVersion !== authStateVersion) return;
+        alert("Email belum disahkan. Sila sahkan email sebelum login.");
+        await window.firebaseSafeSignOut();
+        return;
+      }
+
       const isAdmin = await window.firebaseIsPlatformAdmin(true);
 if (currentVersion !== authStateVersion) return;
 
@@ -593,7 +683,7 @@ if (currentVersion !== authStateVersion) return;
           profileSnapshot.data().status !== "ACTIVE"
         ) {
           alert("Akaun tidak aktif atau profil tidak sah. Sila hubungi Admin.");
-          await signOut(auth);
+          await window.firebaseSafeSignOut();
           return;
         }
 
@@ -616,7 +706,7 @@ if (currentVersion !== authStateVersion) return;
 
               if (auth.currentUser?.uid === user.uid) {
                 alert("Akaun anda telah digantung atau tidak aktif. Sila hubungi Admin.");
-                await signOut(auth);
+                await window.firebaseSafeSignOut();
               }
             }
           },
@@ -630,7 +720,7 @@ if (currentVersion !== authStateVersion) return;
 
             if (auth.currentUser?.uid === user.uid) {
               alert("Status akaun tidak dapat dipantau. Sila login semula.");
-              await signOut(auth);
+              await window.firebaseSafeSignOut();
             }
           }
         );
@@ -638,6 +728,17 @@ if (currentVersion !== authStateVersion) return;
 
 
       if (currentVersion !== authStateVersion) return;
+
+      if (typeof window.startCommunityPresence === "function") {
+        try {
+          await window.startCommunityPresence();
+        } catch (error) {
+          console.error("Community Presence gagal dimulakan:", error);
+        }
+      }
+
+      if (currentVersion !== authStateVersion) return;
+
       if (typeof window.unlockApp === "function") {
         window.unlockApp(user);
       }
@@ -647,7 +748,7 @@ if (currentVersion !== authStateVersion) return;
       if (currentVersion !== authStateVersion) return;
       console.error("Pengesahan status akaun gagal:", error);
       alert("Status akaun tidak dapat disahkan. Sila cuba login semula.");
-      await signOut(auth);
+      await window.firebaseSafeSignOut();
     }
   } else {
     const button = document.getElementById("adminMenuButton");
@@ -1302,5 +1403,16 @@ window.syncMembershipExpiry = async function() {
   const syncExpiry = httpsCallable(functions, "syncMembershipExpiry");
   const response = await syncExpiry({});
 
+  return response.data;
+};
+
+
+// DTC DATABASE: PANGGILAN CLOUD FUNCTION
+window.firebaseGetDTCDetails = async function(code) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login dahulu.");
+
+  const getDTCDetails = httpsCallable(functions, "getDTCDetails");
+  const response = await getDTCDetails({ code });
   return response.data;
 };
