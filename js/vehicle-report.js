@@ -4,7 +4,8 @@
   const KEYS = {
     vehicles: "kardriver_autohub_vehicles_v1",
     services: "kardriver_autohub_services_v1",
-    health: "kardriver_car_health_v1"
+    health: "kardriver_car_health_v1",
+    healthById: "kardriver_car_health_by_vehicle_v1"
   };
 
   function read(key, fallback) {
@@ -36,15 +37,14 @@
     if (!root) return;
 
     const vehicles = read(KEYS.vehicles, []);
-    const services = read(KEYS.services, []);
-    const health = read(KEYS.health, {});
+    const identifiedVehicles = vehicles.filter(car => car && car.vehicleId);
 
-    if (!vehicles.length) {
+    if (!identifiedVehicles.length) {
       root.innerHTML = `
         <div class="card">
-          <h3>Tiada kenderaan berdaftar</h3>
-          <p>Daftarkan kenderaan melalui My Garage untuk menjana laporan.</p>
-          <button class="action" onclick="go('garage')">BUKA MY GARAGE</button>
+          <h3>Laporan belum tersedia</h3>
+          <p>Kenderaan perlu mempunyai ID unik sebelum laporan boleh dijana.</p>
+          <p class="muted">Rekod asal tidak akan dipautkan menggunakan nombor indeks.</p>
         </div>`;
       return;
     }
@@ -53,10 +53,11 @@
       <div class="card">
         <label for="reportVehicle">PILIH KENDERAAN</label>
         <select id="reportVehicle" onchange="renderSelectedVehicleReport()">
-          ${vehicles.map((car, index) => `
-            <option value="${index}">
+          ${identifiedVehicles.map(car => `
+            <option value="${escapeHTML(car.vehicleId)}">
               ${escapeHTML(car.brand)} ${escapeHTML(car.model)}
               - ${escapeHTML(car.registration || "Tiada nombor")}
+              ${car.archived ? "(ARKIB)" : ""}
             </option>
           `).join("")}
         </select>
@@ -73,25 +74,40 @@
 
     const vehicles = read(KEYS.vehicles, []);
     const services = read(KEYS.services, []);
-    const health = read(KEYS.health, {});
-    const index = Number(select.value);
-    const car = vehicles[index];
+    const healthById = read(KEYS.healthById, {});
+    const vehicleId = select.value;
+    const car = vehicles.find(item =>
+      item && String(item.vehicleId) === String(vehicleId)
+    );
 
-    if (!Number.isInteger(index) || !car) {
+    if (!car || !vehicleId) {
       root.textContent = "Rekod kenderaan tidak ditemui.";
       return;
     }
 
     const records = services
       .map((record, originalIndex) => ({ record, originalIndex }))
-      .filter(item => Number(item.record.vehicleIndex) === index)
-      .sort((a, b) => String(b.record.date || "").localeCompare(String(a.record.date || "")));
+      .filter(item =>
+        item.record &&
+        String(item.record.vehicleId || "") === String(vehicleId) &&
+        item.record.vehicleLinkStatus === "verified"
+      )
+      .sort((a, b) =>
+        String(b.record.date || "").localeCompare(String(a.record.date || ""))
+      );
+
+    const unlinkedCount = services.filter(record =>
+      record && (
+        !record.vehicleId ||
+        record.vehicleLinkStatus !== "verified"
+      )
+    ).length;
 
     const totalCost = records.reduce(
       (sum, item) => sum + (Number(item.record.cost) || 0), 0
     );
 
-    const assessment = health[String(index)] || {};
+    const assessment = healthById[vehicleId] || {};
     const weights = {
       engine: 30, transmission: 20, brakes: 15,
       tires: 10, battery: 10, cooling: 10, maintenance: 5
@@ -126,12 +142,13 @@
           Mileage: ${(Number(car.mileage) || 0).toLocaleString("en-MY")} KM<br>
           Road Tax: ${escapeHTML(car.roadtax || "Belum diisi")}<br>
           Insurans: ${escapeHTML(car.insurance || "Belum diisi")}
+          ${car.archived ? "<br>Status: KENDERAAN DIARKIBKAN" : ""}
         </div>
       </div>
 
       <div class="grid">
         <div class="stat">
-          <span class="muted">REKOD SERVIS</span>
+          <span class="muted">REKOD SERVIS DISAHKAN</span>
           <strong>${records.length}</strong>
         </div>
         <div class="stat">
@@ -163,15 +180,21 @@
               Catatan: ${escapeHTML(record.notes || "-")}
             </div>
           </div>
-        `).join("") : '<p class="muted">Belum ada rekod servis untuk kenderaan ini.</p>'}
+        `).join("") : '<p class="muted">Belum ada rekod servis yang disahkan untuk kenderaan ini.</p>'}
       </div>
 
       <div class="card">
         <h3>CAR HEALTH ASSESSMENT</h3>
         <h2>${score === null ? "--" : score + " / 100"}</h2>
         <p>${scoreLabel} · Liputan penilaian ${coverage}%</p>
-        <p class="muted">Berdasarkan penilaian manual yang disimpan.</p>
+        <p class="muted">Berdasarkan penilaian manual yang dipautkan menggunakan ID kenderaan.</p>
         <p class="muted">OBD2: Sejarah scan belum tersedia dalam storan projek.</p>
+      </div>
+
+      <div class="card">
+        <h3>REKOD SERVIS BELUM DISAHKAN</h3>
+        <strong>${unlinkedCount}</strong>
+        <p class="muted">Rekod ini tidak dimasukkan dalam sejarah atau jumlah kos kenderaan ini sehingga pautannya disahkan secara manual.</p>
       </div>
 
       <div class="card">
@@ -179,7 +202,6 @@
         <button class="action" onclick="printVehicleReport()">CETAK / SIMPAN PDF</button>
       </div>`;
   }
-
 
   function printVehicleReport() {
     const source = document.getElementById("selectedVehicleReport");

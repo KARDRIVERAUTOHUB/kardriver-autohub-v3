@@ -107,6 +107,104 @@ window.loadAdminDashboard = async function() {
       });
     }
 
+
+    // MEMBERSHIP CONTROL CENTER
+    const membershipStatus = document.getElementById("adminMembershipStatus");
+    const membershipPending = document.getElementById("adminMembershipPending");
+    const membershipActive = document.getElementById("adminMembershipActive");
+    const membershipList = document.getElementById("adminMembershipRequestList");
+
+    try {
+      const membershipData = await window.firebaseAdminGetMembershipRequests();
+      membershipPending.textContent = membershipData.pending;
+      const now = Date.now();
+      membershipActive.textContent = data.users.filter(user => {
+        if (
+          user.membershipStatus !== "ACTIVE" ||
+          !["PRO", "MASTERCLASS_ELITE"].includes(user.membership)
+        ) return false;
+
+        const expiry = user.membershipExpiresAt;
+        const expiryMillis =
+          expiry?.toMillis?.() ??
+          (expiry instanceof Date ? expiry.getTime() :
+          typeof expiry === "string" ? Date.parse(expiry) :
+          typeof expiry?.seconds === "number" ? expiry.seconds * 1000 : NaN);
+
+        return Number.isFinite(expiryMillis) && expiryMillis > now;
+      }).length;
+
+      membershipList.replaceChildren();
+
+      if (membershipData.requests.length === 0) {
+        membershipList.appendChild(adminElement("p", "Tiada permohonan Membership."));
+      } else {
+        membershipData.requests.forEach(request => {
+          const card = adminElement("div", null, "admin-request-card");
+          const planName = request.requestedPlan === "MASTERCLASS_ELITE"
+            ? "MASTERCLASS ELITE" : request.requestedPlan;
+
+          card.appendChild(adminElement("strong", request.applicantName));
+          card.appendChild(adminElement("p", request.applicantEmail || "-"));
+          card.appendChild(adminElement("p", "PAKEJ: " + planName));
+          card.appendChild(adminElement("p", "TEMPOH: " + request.billingCycle));
+          card.appendChild(adminElement(
+            "p",
+            "JUMLAH: RM" + Number(request.amount).toFixed(2)
+          ));
+          card.appendChild(adminElement(
+            "p",
+            "RUJUKAN PEMBAYARAN: " + (request.paymentReference || "-")
+          ));
+
+          const requestStatus = String(request.status || "-").toUpperCase();
+          const statusClass = {
+            PENDING: "status-pending",
+            APPROVED: "status-approved",
+            REJECTED: "status-rejected"
+          }[requestStatus] || "status-other";
+
+          card.appendChild(adminElement(
+            "span",
+            requestStatus,
+            "tag " + statusClass
+          ));
+
+          if (requestStatus === "PENDING") {
+            const actions = adminElement("div", null, "admin-request-actions");
+            const approve = adminElement("button", "APPROVE", "action");
+            const reject = adminElement("button", "REJECT", "action");
+
+            approve.type = "button";
+            reject.type = "button";
+
+            approve.addEventListener("click", () => {
+              window.reviewAdminMembershipRequest(request.id, "APPROVED");
+            });
+
+            reject.addEventListener("click", () => {
+              window.reviewAdminMembershipRequest(request.id, "REJECTED");
+            });
+
+            actions.append(approve, reject);
+            card.appendChild(actions);
+          }
+
+          membershipList.appendChild(card);
+        });
+      }
+
+      membershipStatus.textContent =
+        "Membership requests berjaya dimuatkan. Semak rujukan pembayaran secara manual.";
+    } catch (membershipError) {
+      membershipStatus.textContent =
+        "Gagal membaca Membership: " + membershipError.message;
+      membershipPending.textContent = "—";
+      membershipActive.textContent = "—";
+      membershipList.textContent = "Data Membership tidak dapat dibaca.";
+      console.error("Admin membership dashboard error:", membershipError);
+    }
+
     // SENARAI PENGGUNA
     userList.replaceChildren();
 
@@ -137,7 +235,10 @@ window.loadAdminDashboard = async function() {
           adminElement("span", userStatus, "tag")
         );
 
-        if (userStatus === "ACTIVE" || userStatus === "SUSPENDED") {
+        if (
+          (userStatus === "ACTIVE" || userStatus === "SUSPENDED") &&
+          !(userStatus === "ACTIVE" && roles.includes("OWNER"))
+        ) {
           const action = userStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
           const buttonText = action === "SUSPENDED" ? "SUSPEND" : "ACTIVATE";
           const button = adminElement("button", buttonText, "action");
@@ -245,6 +346,39 @@ window.reviewAdminRoleRequest = async function(requestId, decision) {
   } catch (error) {
     console.error("Role review error:", error);
     alert("Gagal memproses permohonan: " + error.message);
+  }
+};
+
+
+// TINDAKAN APPROVE / REJECT MEMBERSHIP
+window.reviewAdminMembershipRequest = async function(requestId, decision) {
+  if (!window.adminState.verified) {
+    alert("Akses Platform Admin diperlukan.");
+    return;
+  }
+
+  const actionText = decision === "APPROVED" ? "meluluskan" : "menolak";
+
+  if (!confirm("Adakah anda sudah menyemak rujukan pembayaran dan pasti mahu " +
+      actionText + " permohonan Membership ini?")) {
+    return;
+  }
+
+  try {
+    const result = await window.firebaseAdminReviewMembershipRequest(
+      requestId,
+      decision
+    );
+
+    if (!result.success) {
+      throw new Error("Tindakan tidak berjaya.");
+    }
+
+    alert("Permohonan Membership berjaya diproses: " + result.status);
+    await window.loadAdminDashboard();
+  } catch (error) {
+    console.error("Membership review error:", error);
+    alert("Gagal memproses Membership: " + error.message);
   }
 };
 

@@ -3,8 +3,10 @@
 
   function getVehicles(){
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      return Array.isArray(data) ? data : [];
     } catch(error) {
+      console.error("Garage data error:", error);
       return [];
     }
   }
@@ -36,38 +38,67 @@
     const count = document.getElementById("garageVehicleCount");
     if(!list || !count) return;
 
-    const vehicles = getVehicles();
-    count.textContent = vehicles.length;
+    const allVehicles = getVehicles();
+    const active = allVehicles
+      .map((car,index) => ({car,index}))
+      .filter(item => item.car.archived !== true);
+    const archived = allVehicles
+      .map((car,index) => ({car,index}))
+      .filter(item => item.car.archived === true);
 
-    if(!vehicles.length){
-      list.innerHTML = '<div class="garage-empty">Belum ada kereta didaftarkan.<br>Tekan SIMPAN KERETA untuk bermula.</div>';
-      return;
-    }
+    count.textContent = active.length;
 
-    list.innerHTML = vehicles.map(function(car,index){
-      const road = expiryStatus(car.roadtax);
-      const insurance = expiryStatus(car.insurance);
+    const activeHTML = active.length
+      ? active.map(({car,index}) => {
+          const road = expiryStatus(car.roadtax);
+          const insurance = expiryStatus(car.insurance);
+          const archiveButton = car.vehicleId
+            ? `<button class="action" onclick="archiveGarageVehicle('${escapeHTML(car.vehicleId)}')">ARKIB KENDERAAN</button>`
+            : `<p class="muted">Kenderaan lama: arkib tersedia selepas migrasi ID disahkan.</p>`;
 
-      return `
-        <div class="garage-car">
-          <h3>${escapeHTML(car.brand)} ${escapeHTML(car.model)}</h3>
-          <div class="garage-meta">
-            Tahun: ${escapeHTML(car.year)}<br>
-            No. pendaftaran: ${escapeHTML(car.registration || "-")}<br>
-            Mileage: ${Number(car.mileage).toLocaleString("en-US")} km
-          </div>
-          <hr>
-          <div class="garage-meta">
-            <strong>ROAD TAX</strong><br>
-            Tarikh tamat: ${escapeHTML(car.roadtax || "Belum diisi")}<br>
-            <span style="color:${road.color}">${road.text}</span><br><br>
-            <strong>INSURANS</strong><br>
-            Tarikh tamat: ${escapeHTML(car.insurance || "Belum diisi")}<br>
-            <span style="color:${insurance.color}">${insurance.text}</span>
-          </div>
-          <button class="garage-delete" onclick="deleteGarageVehicle(${index})">PADAM KERETA</button>
-        </div>`;
-    }).join("");
+          return `
+            <div class="card">
+              <h3>${escapeHTML(car.brand)} ${escapeHTML(car.model)}</h3>
+              <div class="muted">
+                Tahun: ${escapeHTML(car.year)}<br>
+                No. pendaftaran: ${escapeHTML(car.registration || "-")}<br>
+                Mileage: ${Number(car.mileage).toLocaleString("en-US")} km
+              </div>
+              <hr>
+              <div class="muted">
+                <strong>ROAD TAX</strong><br>
+                Tarikh tamat: ${escapeHTML(car.roadtax || "Belum diisi")}<br>
+                <span style="color:${road.color}">${road.text}</span><br><br>
+                <strong>INSURANS</strong><br>
+                Tarikh tamat: ${escapeHTML(car.insurance || "Belum diisi")}<br>
+                <span style="color:${insurance.color}">${insurance.text}</span>
+              </div>
+              ${archiveButton}
+            </div>`;
+        }).join("")
+      : '<div class="garage-empty">Belum ada kereta aktif didaftarkan.<br>Tekan SIMPAN KERETA untuk bermula.</div>';
+
+    const archivedHTML = archived.length
+      ? `
+        <div class="card">
+          <h3>ARKIB KENDERAAN (${archived.length})</h3>
+          ${archived.map(({car}) => `
+            <div class="card">
+              <h3>${escapeHTML(car.brand)} ${escapeHTML(car.model)}</h3>
+              <div class="muted">
+                Tahun: ${escapeHTML(car.year)}<br>
+                No. pendaftaran: ${escapeHTML(car.registration || "-")}<br>
+                Status: DIARKIBKAN
+              </div>
+              ${car.vehicleId
+                ? `<button class="action" onclick="restoreGarageVehicle('${escapeHTML(car.vehicleId)}')">PULIHKAN KENDERAAN</button>`
+                : '<p class="muted">ID kenderaan belum tersedia.</p>'}
+            </div>
+          `).join("")}
+        </div>`
+      : "";
+
+    list.innerHTML = activeHTML + archivedHTML;
   }
 
   window.addGarageVehicle = function(){
@@ -86,7 +117,19 @@
 
     try {
       const vehicles = getVehicles();
+      const store = window.KarDriverVehicleStore;
+
+      if(!store || typeof store.createVehicleId !== "function"){
+        throw new Error("Vehicle Store belum tersedia.");
+      }
+
+      const existingIds = new Set(
+        vehicles.map(vehicle => vehicle.vehicleId).filter(Boolean)
+      );
+
       vehicles.push({
+        vehicleId: store.createVehicleId(existingIds),
+        archived: false,
         brand, model, year, registration,
         mileage: Math.max(0, Number(mileage)),
         roadtax, insurance,
@@ -99,18 +142,60 @@
       if(window.renderDashboard) window.renderDashboard();
       alert("Kereta berjaya didaftarkan!");
     } catch(error) {
-      alert("Gagal menyimpan kereta. Sila semak ruang storan telefon.");
+      alert("Gagal menyimpan kereta. Sila semak storan telefon.");
       console.error(error);
     }
   };
 
+  window.archiveGarageVehicle = function(vehicleId){
+    if(!vehicleId) return;
+
+    if(!confirm("Arkibkan kenderaan ini? Sejarah servis dan Car Health akan dikekalkan.")){
+      return;
+    }
+
+    try {
+      const store = window.KarDriverVehicleStore;
+      if(!store) throw new Error("Vehicle Store belum tersedia.");
+
+      store.archiveVehicle(vehicleId);
+      renderGarage();
+      if(window.renderDashboard) window.renderDashboard();
+      alert("Kenderaan berjaya diarkibkan. Sejarahnya dikekalkan.");
+    } catch(error) {
+      alert("Gagal mengarkibkan kenderaan: " + error.message);
+      console.error(error);
+    }
+  };
+
+  window.restoreGarageVehicle = function(vehicleId){
+    if(!vehicleId) return;
+
+    try {
+      const store = window.KarDriverVehicleStore;
+      if(!store) throw new Error("Vehicle Store belum tersedia.");
+
+      store.restoreVehicle(vehicleId);
+      renderGarage();
+      if(window.renderDashboard) window.renderDashboard();
+      alert("Kenderaan berjaya dipulihkan.");
+    } catch(error) {
+      alert("Gagal memulihkan kenderaan: " + error.message);
+      console.error(error);
+    }
+  };
+
+  // Keserasian sementara untuk panggilan lama berasaskan indeks.
   window.deleteGarageVehicle = function(index){
-    if(!confirm("Anda pasti mahu memadam rekod kereta ini?")) return;
-    const vehicles = getVehicles();
-    vehicles.splice(index,1);
-    saveVehicles(vehicles);
-    renderGarage();
-    if(window.renderDashboard) window.renderDashboard();
+    const active = getVehicles().filter(car => car.archived !== true);
+    const vehicle = active[Number(index)];
+
+    if(!vehicle || !vehicle.vehicleId){
+      alert("Kenderaan lama perlu melalui migrasi ID sebelum boleh diarkibkan.");
+      return;
+    }
+
+    window.archiveGarageVehicle(vehicle.vehicleId);
   };
 
   window.renderGarage = renderGarage;

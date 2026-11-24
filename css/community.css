@@ -6,7 +6,7 @@
   padding-bottom:18px;
 }
 #communityPage .community-header{
-  padding:20px 16px;
+  padding:12px 14px;
   border:1px solid #2563EB;
   border-radius:18px;
   background:linear-gradient(135deg,#102b55,#071421 70%);
@@ -14,13 +14,13 @@
 }
 #communityPage .community-brand{
   color:#fff;
-  font-size:22px;
+  font-size:19px;
   font-weight:900;
   letter-spacing:1.5px;
 }
 #communityPage .community-brand span{color:#60a5fa}
 #communityPage .community-subtitle{
-  margin-top:7px;
+  margin-top:4px;
   color:#a9c8e8;
   font-size:11px;
   letter-spacing:2px;
@@ -95,8 +95,8 @@
 }
 #communityPage .community-back{
   width:100%;
-  margin-top:16px;
-  padding:13px;
+  margin-top:9px;
+  padding:10px;
   border:1px solid #2563EB;
   border-radius:11px;
   background:#102b55;
@@ -345,8 +345,18 @@
   white-space:normal;
   overflow-wrap:anywhere;
 }
+#communityPage .kchat-connection-status[data-status="CONNECTED"]{
+  color:#4ade80;
+}
 #communityPage .kchat-connection-status[data-status="ERROR"]{
   color:#f87171;
+}
+#communityPage .kchat-connection-status[data-status="CONNECTED"] i{
+  background:#22c55e;
+  box-shadow:0 0 8px #22c55e;
+}
+#communityPage .kchat-connection-status[data-status="ERROR"] i{
+  background:#f87171;
 }
 #communityPage .kchat-connection-status i{
   display:inline-block;

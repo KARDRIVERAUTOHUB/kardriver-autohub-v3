@@ -7,9 +7,11 @@ const {
 
 const {
   doc,
+  collection,
   setDoc,
   updateDoc,
   getDoc,
+  getDocs,
   writeBatch,
   runTransaction
 } = require("firebase/firestore");
@@ -62,6 +64,31 @@ async function main() {
   });
 
   console.log("\n--- UJIAN FIRESTORE RULES ---");
+  const registrationDriver = testEnv.authenticatedContext("new-driver-001").firestore();
+  const registrationOwner = testEnv.authenticatedContext("new-owner-001").firestore();
+
+  await assertSucceeds(setDoc(doc(registrationDriver, "users/new-driver-001"), {
+    name: "New Driver",
+    email: "driver@example.com",
+    membership: "FREE",
+    status: "ACTIVE",
+    roles: ["DRIVER"],
+    activeRole: "DRIVER",
+    createdAt: new Date()
+  }));
+  console.log("LULUS: Pendaftaran akaun baharu sebagai DRIVER dibenarkan.");
+
+  await assertFails(setDoc(doc(registrationOwner, "users/new-owner-001"), {
+    name: "New Owner",
+    email: "owner@example.com",
+    membership: "FREE",
+    status: "ACTIVE",
+    roles: ["OWNER"],
+    activeRole: "OWNER",
+    createdAt: new Date()
+  }));
+  console.log("LULUS: Pendaftaran akaun baharu sebagai OWNER ditolak.");
+
 
   await assertSucceeds(getDoc(userRef));
   console.log("LULUS: Pengguna boleh membaca profil sendiri.");
@@ -123,6 +150,34 @@ async function main() {
   }));
 
   console.log("LULUS: Permohonan DRIVER dan lock diwujudkan bersama.");
+
+  // UJIAN KESELAMATAN: AKSES SILANG ROLE LOCK
+  const ownDriverLock = doc(user, "role_request_locks/user-001_DRIVER");
+  const otherDriverLock = doc(otherUser, "role_request_locks/user-001_DRIVER");
+
+  await assertFails(getDoc(otherDriverLock));
+  console.log("LULUS: Pengguna lain tidak boleh membaca Role Lock.");
+
+  await assertFails(updateDoc(ownDriverLock, {
+    status: "APPROVED"
+  }));
+  console.log("LULUS: Pengguna tidak boleh mengubah Role Lock sendiri.");
+
+  const ownLockDeleteBatch = writeBatch(user);
+  ownLockDeleteBatch.delete(ownDriverLock);
+  await assertFails(ownLockDeleteBatch.commit());
+  console.log("LULUS: Pengguna tidak boleh memadam Role Lock sendiri.");
+
+  const crossLockDeleteBatch = writeBatch(otherUser);
+  crossLockDeleteBatch.delete(otherDriverLock);
+  await assertFails(crossLockDeleteBatch.commit());
+  console.log("LULUS: Pengguna lain tidak boleh memadam Role Lock.");
+
+  await assertFails(updateDoc(
+    doc(otherUser, "role_requests/request-003"),
+    { status: "APPROVED" }
+  ));
+  console.log("LULUS: Pengguna lain tidak boleh meluluskan permohonan.");
 
   // UJIAN TRANSAKSI: SUBMIT KEDUA DITOLAK APABILA LOCK PENDING WUJUD
   let duplicateSubmitBlocked = false;
@@ -320,6 +375,116 @@ await assertFails(updateDoc(
 ));
 
 console.log("LULUS: Platform Admin tidak boleh membuang Role OWNER.");
+
+// UJIAN: PLATFORM ADMIN TIDAK BOLEH MENAMBAH ROLE PALSU
+await assertFails(updateDoc(
+  doc(admin, "users/user-002"),
+  { roles: ["OWNER", "WORKSHOP", "SUPERADMIN"] }
+));
+console.log("LULUS: Role palsu SUPERADMIN ditolak.");
+
+// UJIAN: PLATFORM ADMIN TIDAK BOLEH MENAMBAH ROLE BERULANG
+await assertFails(updateDoc(
+  doc(admin, "users/user-002"),
+  { roles: ["OWNER", "WORKSHOP", "WORKSHOP"] }
+));
+console.log("LULUS: Role berulang ditolak.");
+
+// UJIAN: ADMIN TANPA CUSTOM CLAIM TIDAK BOLEH MENGUBAH ROLE
+const ordinaryAdmin = testEnv.authenticatedContext("ordinary-admin").firestore();
+await assertFails(updateDoc(
+  doc(ordinaryAdmin, "users/user-002"),
+  { roles: ["OWNER", "WORKSHOP", "FLEET"] }
+));
+console.log("LULUS: Akaun tanpa custom claim tidak boleh mengubah role.");
+
+// UJIAN: PENGGUNA TIDAK BOLEH MEMILIH ROLE YANG TIDAK DIMILIKI
+await assertFails(updateDoc(
+  doc(user, "users/user-001"),
+  { activeRole: "SUPERADMIN" }
+));
+console.log("LULUS: activeRole yang tidak dimiliki ditolak.");
+
+
+  // UJIAN KESELAMATAN: AKAUN SUSPENDED
+  const suspendedUser = testEnv.authenticatedContext("user-003").firestore();
+  const suspendedRef = doc(suspendedUser, "users/user-003");
+
+  await testEnv.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(), "users/user-003"), {
+      name: "Suspended User",
+      email: "suspended@example.com",
+      membership: "FREE",
+      status: "SUSPENDED",
+      roles: ["DRIVER"],
+      activeRole: "DRIVER",
+      createdAt: new Date()
+    });
+  });
+
+  await assertFails(getDoc(suspendedRef));
+  console.log("LULUS: Akaun SUSPENDED tidak boleh membaca profil sendiri.");
+
+  await assertFails(setDoc(
+    doc(suspendedUser, "role_requests/suspended-request-001"),
+    {
+      userUid: "user-003",
+      requestedRole: "MECHANIC",
+      status: "PENDING",
+      createdAt: new Date()
+    }
+  ));
+  console.log("LULUS: Akaun SUSPENDED tidak boleh membuat permohonan role.");
+
+  await assertFails(setDoc(
+    doc(suspendedUser, "role_request_locks/user-003_MECHANIC"),
+    {
+      userUid: "user-003",
+      requestedRole: "MECHANIC",
+      requestId: "suspended-request-001",
+      status: "PENDING",
+      createdAt: new Date()
+    }
+  ));
+  console.log("LULUS: Akaun SUSPENDED tidak boleh mencipta Role Lock.");
+
+  await assertFails(updateDoc(doc(user, "users/user-001"), {
+    status: "SUSPENDED"
+  }));
+  console.log("LULUS: Pengguna biasa tidak boleh menggantung akaun sendiri.");
+
+  const adminSuspendedRef = doc(admin, "users/user-003");
+  await assertSucceeds(getDoc(adminSuspendedRef));
+  console.log("LULUS: Platform Admin boleh membaca profil SUSPENDED.");
+
+  await assertSucceeds(updateDoc(adminSuspendedRef, {
+    status: "ACTIVE"
+  }));
+  console.log("LULUS: Platform Admin boleh mengaktifkan semula akaun.");
+
+  await assertSucceeds(getDoc(suspendedRef));
+  console.log("LULUS: Pengguna boleh membaca profil selepas diaktifkan semula.");
+
+  await assertSucceeds(updateDoc(adminSuspendedRef, {
+    status: "SUSPENDED"
+  }));
+  console.log("LULUS: Platform Admin boleh menggantung akaun.");
+
+  await assertSucceeds(getDoc(adminSuspendedRef));
+  console.log("LULUS: Platform Admin masih boleh membaca akaun selepas digantung.");
+
+
+  await assertFails(getDocs(collection(user, "users")));
+  console.log("LULUS: Pengguna biasa tidak boleh menyenaraikan koleksi users.");
+
+  await assertFails(getDocs(collection(user, "role_requests")));
+  console.log("LULUS: Pengguna biasa tidak boleh menyenaraikan role_requests.");
+
+  await assertSucceeds(getDocs(collection(admin, "users")));
+  console.log("LULUS: Platform Admin boleh menyenaraikan koleksi users.");
+
+  await assertSucceeds(getDocs(collection(admin, "role_requests")));
+  console.log("LULUS: Platform Admin boleh menyenaraikan role_requests.");
 
   console.log("\nSELESAI: Ujian asas Firestore Rules.");
 }

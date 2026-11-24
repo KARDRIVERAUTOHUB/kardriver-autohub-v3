@@ -44,3 +44,15 @@ ui-debug.log
 test-*.cjs
 firebase.role-lock.json
 firestore.role-lock.rules
+
+# Firebase Hosting Preview and local emulator
+.firebase/
+hosting-preview/
+firebase.preview.json
+
+# Allow Firebase Cloud Functions manifests
+!functions/package.json
+!functions/package-lock.json
+
+# Local backup files
+functions/*.backup*

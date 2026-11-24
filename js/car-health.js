@@ -1,95 +1,192 @@
-(function () {
+(function(){
   "use strict";
 
-  const STORAGE_KEY = "kardriver_car_health_v1";
+  const NEW_HEALTH_KEY = "kardriver_car_health_by_vehicle_v1";
 
   const COMPONENTS = [
-    { id: "engine", name: "Enjin", weight: 30 },
-    { id: "transmission", name: "Transmisi", weight: 20 },
-    { id: "brakes", name: "Sistem brek", weight: 15 },
-    { id: "tires", name: "Tayar", weight: 10 },
-    { id: "battery", name: "Bateri", weight: 10 },
-    { id: "cooling", name: "Sistem penyejukan", weight: 10 },
-    { id: "maintenance", name: "Rekod penyelenggaraan", weight: 5 }
+    { id:"engine", name:"Enjin", weight:30 },
+    { id:"transmission", name:"Transmisi", weight:20 },
+    { id:"brakes", name:"Sistem brek", weight:15 },
+    { id:"tires", name:"Tayar", weight:10 },
+    { id:"battery", name:"Bateri", weight:10 },
+    { id:"cooling", name:"Sistem penyejukan", weight:10 },
+    { id:"maintenance", name:"Rekod penyelenggaraan", weight:5 }
   ];
 
-  function getVehicles() {
+  function getStore(){
+    return window.KarDriverVehicleStore || null;
+  }
+
+  function getVehicles(){
+    const store = getStore();
+    if(store) return store.getVehicles();
+
     try {
-      const vehicles = JSON.parse(
+      const data = JSON.parse(
         localStorage.getItem("kardriver_autohub_vehicles_v1") || "[]"
       );
-      return Array.isArray(vehicles) ? vehicles : [];
-    } catch (error) {
-      console.error("Garage data error:", error);
+      return Array.isArray(data) ? data : [];
+    } catch(error) {
       return [];
     }
   }
 
-  function getAssessments() {
+  function getHealthById(){
+    const store = getStore();
+    if(store && typeof store.getHealthByVehicleId === "function"){
+      return store.getHealthByVehicleId();
+    }
+
     try {
-      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      const data = JSON.parse(localStorage.getItem(NEW_HEALTH_KEY) || "{}");
       return data && typeof data === "object" ? data : {};
-    } catch (error) {
-      console.error("Car Health data error:", error);
+    } catch(error) {
       return {};
     }
   }
 
-  function calculateScore(assessment) {
+  function getLegacyHealth(){
+    const store = getStore();
+    if(store && typeof store.getLegacyHealth === "function"){
+      return store.getLegacyHealth();
+    }
+
+    try {
+      const data = JSON.parse(
+        localStorage.getItem("kardriver_car_health_v1") || "{}"
+      );
+      return data && typeof data === "object" ? data : {};
+    } catch(error) {
+      return {};
+    }
+  }
+
+  function escapeHTML(value){
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    })[character]);
+  }
+
+  function calculateScore(assessment){
     let totalWeight = 0;
     let weightedScore = 0;
 
     COMPONENTS.forEach(component => {
-      const item = assessment[component.id];
-
-      if (!item || !Number.isFinite(item.score)) return;
-      if (item.score < 0 || item.score > 100) return;
+      const item = assessment?.[component.id];
+      if(!item || !Number.isFinite(item.score)) return;
+      if(item.score < 0 || item.score > 100) return;
 
       totalWeight += component.weight;
       weightedScore += item.score * component.weight;
     });
 
     return {
-      score: totalWeight ? Math.round(weightedScore / totalWeight) : null,
+      score: totalWeight
+        ? Math.round(weightedScore / totalWeight)
+        : null,
       coverage: totalWeight
-        ? Math.round((totalWeight / 100) * 100)
-        : 0
     };
   }
 
-  function scoreLabel(score) {
-    if (score === null) return "Belum Dinilai";
-    if (score >= 85) return "Sangat Baik";
-    if (score >= 70) return "Baik";
-    if (score >= 50) return "Perlu Perhatian";
+  function scoreLabel(score){
+    if(score === null) return "Belum Dinilai";
+    if(score >= 85) return "Sangat Baik";
+    if(score >= 70) return "Baik";
+    if(score >= 50) return "Perlu Perhatian";
     return "Perlu Pemeriksaan";
   }
 
-  function renderCarHealth() {
+  function vehicleLabel(vehicle){
+    return `${vehicle.brand || ""} ${vehicle.model || ""}`.trim() +
+      (vehicle.registration ? " (" + vehicle.registration + ")" : "");
+  }
+
+  function renderCarHealth(){
     const root = document.getElementById("carHealthContent");
-    if (!root) return;
+    if(!root) return;
 
     const vehicles = getVehicles();
-    const assessments = getAssessments();
+    const activeVehicles = vehicles.filter(vehicle =>
+      vehicle.archived !== true && vehicle.vehicleId
+    );
+    const allIdVehicles = vehicles.filter(vehicle => vehicle.vehicleId);
 
-    if (!vehicles.length) {
+    if(!allIdVehicles.length){
       root.innerHTML = `
         <div class="card">
-          <h3>Tiada kenderaan berdaftar</h3>
-          <p>Daftarkan kereta dalam My Garage sebelum membuat pemeriksaan.</p>
+          <h3>Tiada kenderaan dengan ID tersedia</h3>
+          <p>Daftarkan kenderaan atau lengkapkan migrasi ID sebelum menggunakan Car Health.</p>
           <button class="action" onclick="go('garage')">BUKA MY GARAGE</button>
         </div>`;
       return;
     }
 
+    const healthById = getHealthById();
+    const legacy = getLegacyHealth();
+    const linkedLegacyKeys = new Set(
+      Object.values(healthById)
+        .filter(item => item && item._legacySourceIndex !== undefined)
+        .map(item => String(item._legacySourceIndex))
+    );
+
+    const legacyKeys = Object.keys(legacy).filter(key =>
+      !linkedLegacyKeys.has(String(key))
+    );
+
     root.innerHTML = `
+      ${legacyKeys.length ? `
+        <div class="card">
+          <h3>SEJARAH CAR HEALTH LAMA</h3>
+          <p class="muted">
+            Penilaian terdahulu dikekalkan. Pilih sendiri kenderaan yang betul
+            sebelum memindahkan salinan penilaian.
+          </p>
+          ${legacyKeys.map(key => {
+            const assessment = legacy[key] || {};
+            const result = calculateScore(assessment);
+            const availableVehicles = allIdVehicles.filter(vehicle =>
+              !Object.prototype.hasOwnProperty.call(healthById, vehicle.vehicleId)
+            );
+
+            return `
+              <div class="card">
+                <strong>Penilaian lama #${escapeHTML(key)}</strong>
+                <h3>${result.score === null ? "--" : result.score} / 100</h3>
+                <p class="muted">
+                  ${scoreLabel(result.score)} · Liputan ${result.coverage}%
+                </p>
+                <label for="legacyHealthVehicle${escapeHTML(key)}">
+                  Pilih kenderaan yang sepadan
+                </label>
+                <select id="legacyHealthVehicle${escapeHTML(key)}">
+                  <option value="">Pilih kenderaan</option>
+                  ${availableVehicles.map(vehicle => `
+                    <option value="${escapeHTML(vehicle.vehicleId)}">
+                      ${escapeHTML(vehicleLabel(vehicle))}
+                      ${vehicle.archived === true ? " (Arkib)" : ""}
+                    </option>
+                  `).join("")}
+                </select>
+                <button class="action"
+                  onclick="linkLegacyHealthFromUI('${escapeHTML(key)}')">
+                  PAUTKAN PENILAIAN LAMA
+                </button>
+              </div>`;
+          }).join("")}
+        </div>
+      ` : ""}
+
       <div class="card">
         <label for="healthVehicle">Pilih kenderaan</label>
         <select id="healthVehicle" onchange="renderHealthAssessment()">
-          ${vehicles.map((vehicle, index) => `
-            <option value="${index}">
-              ${escapeHTML(vehicle.brand)} ${escapeHTML(vehicle.model)}
-              (${escapeHTML(vehicle.registration || "Tiada nombor")})
+          ${allIdVehicles.map(vehicle => `
+            <option value="${escapeHTML(vehicle.vehicleId)}">
+              ${escapeHTML(vehicleLabel(vehicle))}
+              ${vehicle.archived === true ? " (Arkib)" : ""}
             </option>
           `).join("")}
         </select>
@@ -100,30 +197,34 @@
     renderHealthAssessment();
   }
 
-  function renderHealthAssessment() {
+  function renderHealthAssessment(){
     const select = document.getElementById("healthVehicle");
     const root = document.getElementById("healthAssessment");
-    if (!select || !root) return;
+    if(!select || !root) return;
 
-    const vehicles = getVehicles();
-    const index = Number(select.value);
-    const vehicle = vehicles[index];
+    const vehicleId = select.value;
+    const vehicle = getVehicles().find(item =>
+      item.vehicleId === vehicleId
+    );
 
-    if (!vehicle) {
+    if(!vehicle){
       root.textContent = "Kenderaan tidak ditemui.";
       return;
     }
 
-    const key = String(index);
-    const assessment = getAssessments()[key] || {};
+    const assessment = getHealthById()[vehicleId] || {};
     const result = calculateScore(assessment);
+    const archived = vehicle.archived === true;
 
     root.innerHTML = `
       <div class="card health-score-card">
         <div class="eyebrow">KARDRIVER CAR HEALTH SCORE</div>
-        <div class="health-score">${result.score === null ? "--" : result.score}</div>
+        <div class="health-score">
+          ${result.score === null ? "--" : result.score}
+        </div>
         <h3>${scoreLabel(result.score)}</h3>
         <p>Data pemeriksaan: ${result.coverage}%</p>
+        ${archived ? '<p class="muted">Kenderaan diarkibkan. Sejarah dipaparkan sahaja.</p>' : ""}
         <p class="health-disclaimer">
           Skor ini ialah penilaian awal berdasarkan maklumat yang dimasukkan,
           bukan diagnosis muktamad atau pemeriksaan keselamatan rasmi.
@@ -140,7 +241,7 @@
               <label for="health-${component.id}">
                 ${component.name} (${component.weight}%)
               </label>
-              <select id="health-${component.id}">
+              <select id="health-${component.id}" ${archived ? "disabled" : ""}>
                 <option value="">Belum Dinilai</option>
                 <option value="100" ${current?.score === 100 ? "selected" : ""}>100 - Sangat baik</option>
                 <option value="85" ${current?.score === 85 ? "selected" : ""}>85 - Baik</option>
@@ -151,33 +252,36 @@
               </select>
             </div>`;
         }).join("")}
-        <button class="action" onclick="saveCarHealthAssessment()">
-          SIMPAN PEMERIKSAAN
-        </button>
-      </div>
-    `;
+        ${archived ? "" : `
+          <button class="action" onclick="saveCarHealthAssessment()">
+            SIMPAN PEMERIKSAAN
+          </button>
+        `}
+      </div>`;
   }
 
-  function saveCarHealthAssessment() {
+  function saveCarHealthAssessment(){
     const select = document.getElementById("healthVehicle");
-    if (!select) return;
+    if(!select) return;
 
-    const index = Number(select.value);
-    const vehicles = getVehicles();
+    const vehicleId = select.value;
+    const vehicle = getVehicles().find(item =>
+      item.vehicleId === vehicleId && item.archived !== true
+    );
 
-    if (!Number.isInteger(index) || !vehicles[index]) {
-      alert("Sila pilih kenderaan yang sah.");
+    if(!vehicle){
+      alert("Sila pilih kenderaan aktif yang sah.");
       return;
     }
 
-    const assessments = getAssessments();
-    const current = assessments[String(index)] || {};
+    const healthById = getHealthById();
+    const current = healthById[vehicleId] || {};
 
     COMPONENTS.forEach(component => {
       const field = document.getElementById("health-" + component.id);
-      if (!field) return;
+      if(!field) return;
 
-      if (field.value === "") {
+      if(field.value === ""){
         delete current[component.id];
       } else {
         current[component.id] = {
@@ -188,26 +292,50 @@
       }
     });
 
-    assessments[String(index)] = current;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(assessments));
-
-    alert("Pemeriksaan Car Health berjaya disimpan.");
-    renderHealthAssessment();
+    try {
+      healthById[vehicleId] = current;
+      localStorage.setItem(NEW_HEALTH_KEY, JSON.stringify(healthById));
+      alert("Pemeriksaan Car Health berjaya disimpan.");
+      renderHealthAssessment();
+    } catch(error) {
+      alert("Gagal menyimpan pemeriksaan. Semak storan telefon.");
+      console.error(error);
+    }
   }
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[character]);
+  function linkLegacyHealthFromUI(legacyKey){
+    const select = document.getElementById("legacyHealthVehicle" + legacyKey);
+    const vehicleId = select?.value;
+
+    if(!vehicleId){
+      alert("Sila pilih kenderaan terlebih dahulu.");
+      return;
+    }
+
+    const store = getStore();
+    if(!store || typeof store.linkLegacyHealth !== "function"){
+      alert("Fungsi pautan manual Vehicle Store tidak tersedia.");
+      return;
+    }
+
+    if(!confirm("Sahkan bahawa penilaian lama ini memang milik kenderaan yang dipilih?")){
+      return;
+    }
+
+    try {
+      store.linkLegacyHealth(legacyKey, vehicleId);
+      renderCarHealth();
+      alert("Salinan penilaian lama berjaya dipautkan. Rekod asal dikekalkan.");
+    } catch(error) {
+      alert("Gagal memautkan penilaian: " + error.message);
+      console.error(error);
+    }
   }
 
   window.renderCarHealth = renderCarHealth;
   window.renderHealthAssessment = renderHealthAssessment;
   window.saveCarHealthAssessment = saveCarHealthAssessment;
+  window.linkLegacyHealthFromUI = linkLegacyHealthFromUI;
 
   console.log("KARDRIVER CAR HEALTH MODULE READY");
 })();

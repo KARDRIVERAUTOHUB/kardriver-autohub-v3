@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebas
 
 import {
   getAuth,
+  connectAuthEmulator,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -9,10 +10,14 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import {
   getFirestore,
+  connectFirestoreEmulator,
   doc,
   setDoc,
+  updateDoc,
+  deleteDoc,
   getDoc,
   onSnapshot,
   collection,
@@ -26,10 +31,12 @@ import {
   limit
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
+const useFirebaseEmulators = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBYp4gySn8JmNAje9ZyNmIbwCDf4KIL1ng",
+  apiKey: useFirebaseEmulators ? "demo-api-key" : "AIzaSyBYp4gySn8JmNAje9ZyNmIbwCDf4KIL1ng",
   authDomain: "kardriver-autohub.firebaseapp.com",
-  projectId: "kardriver-autohub",
+  projectId: useFirebaseEmulators ? "demo-kardriver-community" : "kardriver-autohub",
   storageBucket: "kardriver-autohub.firebasestorage.app",
   messagingSenderId: "521435133008",
   appId: "1:521435133008:web:16887b29b7f001d8528d55"
@@ -38,6 +45,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functions = getFunctions(app, "asia-southeast1");
+
+if (useFirebaseEmulators) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+}
+
 // Simpan profil pengguna ke Firestore
 window.saveUserProfile = async function(user) {
   if (!user) return false;
@@ -55,11 +70,7 @@ window.saveUserProfile = async function(user) {
       createdAt: user.metadata?.creationTime || ""
     };
 
-    const existing = await getDoc(userRef);
-
-    if (!existing.exists()) {
-      await setDoc(userRef, userData);
-    }
+    await setDoc(userRef, userData);
 
     return true;
   } catch (error) {
@@ -68,23 +79,40 @@ window.saveUserProfile = async function(user) {
   }
 };
 
+let pendingRegistrationProfile = null;
+
 // Daftar akaun baharu
 window.firebaseRegister = async function(name, email, password) {
+  let resolveProfileReady;
+  const profileReadyPromise = new Promise(resolve => {
+    resolveProfileReady = resolve;
+  });
+
+  pendingRegistrationProfile = { promise: profileReadyPromise };
+
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(result.user, { displayName: name });
 
     const profileSaved = await window.saveUserProfile(result.user);
+    resolveProfileReady(profileSaved);
+
     if (!profileSaved) {
       alert("Akaun berjaya dibuat, tetapi profil gagal disimpan. Sila hubungi Admin.");
+      await signOut(auth);
       return false;
     }
 
     alert("Pendaftaran berjaya! Selamat datang ke KARDRIVER AUTOHUB.");
     return true;
   } catch (error) {
+    resolveProfileReady(false);
     alert("Pendaftaran gagal: " + error.message);
     return false;
+  } finally {
+    if (pendingRegistrationProfile?.promise === profileReadyPromise) {
+      pendingRegistrationProfile = null;
+    }
   }
 };
 
@@ -546,6 +574,12 @@ onAuthStateChanged(auth, async function(user) {
 
   if (user) {
     try {
+      const registrationPending = pendingRegistrationProfile;
+      if (registrationPending) {
+        const profileReady = await registrationPending.promise;
+        if (!profileReady || currentVersion !== authStateVersion) return;
+      }
+
       const isAdmin = await window.firebaseIsPlatformAdmin(true);
 if (currentVersion !== authStateVersion) return;
 
@@ -859,6 +893,14 @@ window.firebaseAdminSetUserStatus = async function(uid, targetStatus) {
 
       const userData = userSnapshot.data();
 
+      if (
+        targetStatus === "SUSPENDED" &&
+        Array.isArray(userData.roles) &&
+        userData.roles.includes("OWNER")
+      ) {
+        throw new Error("Akaun OWNER dilindungi dan tidak boleh digantung.");
+      }
+
       if (!["ACTIVE", "SUSPENDED"].includes(userData.status)) {
         throw new Error("Status akaun semasa tidak sah.");
       }
@@ -902,4 +944,363 @@ window.firebaseAdminSetUserStatus = async function(uid, targetStatus) {
     console.error("Admin user status update failed:", error);
     throw error;
   }
+};
+
+// KARDRIVER LIVE PRESENCE V1 - FIRESTORE API
+const KARDRIVER_PRESENCE_COLLECTION = "community_presence_sessions";
+
+window.firebasePresenceStartSession = async function(sessionId) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login untuk memulakan Presence.");
+
+  await window.firebaseEnsureCommunityProfile();
+
+  if (!/^[a-zA-Z0-9_-]{10,80}$/.test(sessionId)) {
+    throw new Error("ID sesi Presence tidak sah.");
+  }
+
+  const sessionRef = doc(db, KARDRIVER_PRESENCE_COLLECTION, sessionId);
+
+  await setDoc(sessionRef, {
+    uid: user.uid,
+    sessionId: sessionId,
+    state: "ONLINE",
+    lastHeartbeat: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+
+  return { success: true, sessionId: sessionId };
+};
+
+window.firebasePresenceHeartbeat = async function(sessionId, state) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sesi login tidak sah.");
+
+  if (!/^[a-zA-Z0-9_-]{10,80}$/.test(sessionId)) {
+    throw new Error("ID sesi Presence tidak sah.");
+  }
+
+  if (!["ONLINE", "AWAY"].includes(state)) {
+    throw new Error("Status Presence tidak sah.");
+  }
+
+  const sessionRef = doc(db, KARDRIVER_PRESENCE_COLLECTION, sessionId);
+  const snapshot = await getDoc(sessionRef);
+
+  if (!snapshot.exists() || snapshot.data().uid !== user.uid) {
+    throw new Error("Sesi Presence tiada atau bukan milik pengguna ini.");
+  }
+
+  await updateDoc(sessionRef, {
+    state: state,
+    lastHeartbeat: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+
+  return { success: true, state: state };
+};
+
+window.firebasePresenceEndSession = async function(sessionId) {
+  const user = auth.currentUser;
+  if (!user) return { success: false, reason: "NO_AUTH" };
+
+  if (!/^[a-zA-Z0-9_-]{10,80}$/.test(sessionId)) {
+    throw new Error("ID sesi Presence tidak sah.");
+  }
+
+  const sessionRef = doc(db, KARDRIVER_PRESENCE_COLLECTION, sessionId);
+  const snapshot = await getDoc(sessionRef);
+
+  if (!snapshot.exists()) return { success: true, removed: false };
+
+  if (snapshot.data().uid !== user.uid) {
+    throw new Error("Tidak dibenarkan menamatkan sesi pengguna lain.");
+  }
+
+  await deleteDoc(sessionRef);
+  return { success: true, removed: true };
+};
+
+console.log("KARDRIVER LIVE PRESENCE FIRESTORE API READY");
+
+// ============================================================
+// KARDRIVER MEMBERSHIP API V1
+// ============================================================
+
+const KARDRIVER_MEMBERSHIP_PRICES = {
+  PRO: { MONTHLY: 29.99, YEARLY: 299 },
+  MASTERCLASS_ELITE: { MONTHLY: 89.99, YEARLY: 899 }
+};
+
+function membershipDateMillis(value) {
+  if (value?.toMillis) return value.toMillis();
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "string") return Date.parse(value);
+  if (typeof value?.seconds === "number") return value.seconds * 1000;
+  return 0;
+}
+
+// 1. BACA PROFIL MEMBERSHIP PENGGUNA
+window.firebaseGetMyMembershipProfile = async function() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login dahulu.");
+
+  const snapshot = await getDoc(doc(db, "users", user.uid));
+  if (!snapshot.exists()) throw new Error("Profil pengguna tidak ditemui.");
+
+  return snapshot.data();
+};
+
+// 2. BACA SEJARAH PERMOHONAN MEMBERSHIP
+window.firebaseGetMyMembershipRequests = async function() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login dahulu.");
+
+  const requestsQuery = query(
+    collection(db, "membership_requests"),
+    where("userUid", "==", user.uid)
+  );
+
+  const snapshot = await getDocs(requestsQuery);
+
+  return snapshot.docs.map(item => ({
+    id: item.id,
+    ...item.data()
+  })).sort((a, b) =>
+    membershipDateMillis(b.createdAt) - membershipDateMillis(a.createdAt)
+  );
+};
+
+// 3. HANTAR PERMOHONAN MEMBERSHIP
+window.firebaseSubmitMembershipRequest = async function(plan, cycle, paymentReference) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login dahulu.");
+
+  if (!Object.prototype.hasOwnProperty.call(KARDRIVER_MEMBERSHIP_PRICES, plan)) {
+    throw new Error("Pakej Membership tidak sah.");
+  }
+
+  if (!["MONTHLY", "YEARLY"].includes(cycle)) {
+    throw new Error("Tempoh langganan tidak sah.");
+  }
+
+  const reference = String(paymentReference || "").trim();
+  if (reference.length < 4 || reference.length > 100) {
+    throw new Error("Rujukan pembayaran mesti antara 4 hingga 100 aksara.");
+  }
+
+  const amount = KARDRIVER_MEMBERSHIP_PRICES[plan][cycle];
+  const userRef = doc(db, "users", user.uid);
+  const lockRef = doc(db, "membership_request_locks", user.uid);
+  const requestRef = doc(collection(db, "membership_requests"));
+
+  await runTransaction(db, async transaction => {
+    const userSnapshot = await transaction.get(userRef);
+    const lockSnapshot = await transaction.get(lockRef);
+
+    if (!userSnapshot.exists()) {
+      throw new Error("Profil pengguna tidak ditemui.");
+    }
+
+    if (userSnapshot.data().status !== "ACTIVE") {
+      throw new Error("Akaun tidak aktif. Permohonan tidak dibenarkan.");
+    }
+
+    if (lockSnapshot.exists()) {
+      throw new Error("Anda masih mempunyai permohonan Membership yang menunggu semakan.");
+    }
+
+    transaction.set(requestRef, {
+      userUid: user.uid,
+      requestedPlan: plan,
+      billingCycle: cycle,
+      amount: amount,
+      paymentReference: reference,
+      status: "PENDING",
+      createdAt: serverTimestamp()
+    });
+
+    transaction.set(lockRef, {
+      userUid: user.uid,
+      requestId: requestRef.id,
+      status: "PENDING",
+      createdAt: serverTimestamp()
+    });
+  });
+
+  return {
+    success: true,
+    status: "PENDING",
+    requestId: requestRef.id
+  };
+};
+
+// 4. ADMIN: BACA PERMOHONAN MEMBERSHIP
+window.firebaseAdminGetMembershipRequests = async function() {
+  const isAdmin = await window.firebaseIsPlatformAdmin(true);
+  if (!isAdmin) throw new Error("Akses Platform Admin ditolak.");
+
+  const [requestsSnapshot, usersSnapshot] = await Promise.all([
+    getDocs(collection(db, "membership_requests")),
+    getDocs(collection(db, "users"))
+  ]);
+
+  const users = new Map(
+    usersSnapshot.docs.map(item => [item.id, item.data()])
+  );
+
+  const requests = requestsSnapshot.docs.map(item => {
+    const request = item.data();
+    const applicant = users.get(request.userUid);
+
+    return {
+      id: item.id,
+      ...request,
+      applicantName: applicant?.name || "Nama tidak ditemui",
+      applicantEmail: applicant?.email || ""
+    };
+  }).sort((a, b) =>
+    membershipDateMillis(b.createdAt) - membershipDateMillis(a.createdAt)
+  );
+
+  return {
+    pending: requests.filter(item => item.status === "PENDING").length,
+    requests
+  };
+};
+
+// 5. ADMIN: LULUSKAN ATAU TOLAK PERMOHONAN MEMBERSHIP
+window.firebaseAdminReviewMembershipRequest = async function(requestId, decision) {
+  const isAdmin = await window.firebaseIsPlatformAdmin(true);
+  if (!isAdmin) throw new Error("Akses Platform Admin ditolak.");
+
+  if (!requestId || !["APPROVED", "REJECTED"].includes(decision)) {
+    throw new Error("Maklumat permohonan tidak sah.");
+  }
+
+  const requestRef = doc(db, "membership_requests", requestId);
+
+  await runTransaction(db, async transaction => {
+    const requestSnapshot = await transaction.get(requestRef);
+
+    if (!requestSnapshot.exists()) {
+      throw new Error("Permohonan Membership tidak ditemui.");
+    }
+
+    const requestData = requestSnapshot.data();
+
+    if (requestData.status !== "PENDING") {
+      throw new Error("Permohonan ini sudah diproses.");
+    }
+
+    const userUid = requestData.userUid;
+    if (!userUid) throw new Error("UID pengguna tidak sah.");
+
+    const userRef = doc(db, "users", userUid);
+    const lockRef = doc(db, "membership_request_locks", userUid);
+
+    const [userSnapshot, lockSnapshot] = await Promise.all([
+      transaction.get(userRef),
+      transaction.get(lockRef)
+    ]);
+
+    if (!userSnapshot.exists()) {
+      throw new Error("Profil pengguna tidak ditemui.");
+    }
+
+    if (!lockSnapshot.exists()) {
+      throw new Error("Membership lock tidak ditemui. Permohonan perlu disemak.");
+    }
+
+    const lockData = lockSnapshot.data();
+
+    if (
+      lockData.requestId !== requestId ||
+      lockData.userUid !== userUid ||
+      lockData.status !== "PENDING"
+    ) {
+      throw new Error("Membership lock tidak sepadan dengan permohonan.");
+    }
+
+    let startedAt = null;
+    let expiresAt = null;
+
+    if (decision === "APPROVED") {
+      const plan = requestData.requestedPlan;
+      const cycle = requestData.billingCycle;
+      const expectedAmount = KARDRIVER_MEMBERSHIP_PRICES[plan]?.[cycle];
+
+      if (
+        expectedAmount === undefined ||
+        Number(requestData.amount) !== expectedAmount
+      ) {
+        throw new Error("Harga atau pakej permohonan tidak sah.");
+      }
+
+      if (userSnapshot.data().status !== "ACTIVE") {
+        throw new Error("Akaun pengguna tidak aktif.");
+      }
+
+      startedAt = new Date();
+      expiresAt = new Date(startedAt);
+      const originalDay = expiresAt.getDate();
+
+      expiresAt.setDate(1);
+
+      if (cycle === "MONTHLY") {
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      } else {
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      }
+
+      const lastDay = new Date(
+        expiresAt.getFullYear(),
+        expiresAt.getMonth() + 1,
+        0
+      ).getDate();
+
+      expiresAt.setDate(Math.min(originalDay, lastDay));
+
+      transaction.update(userRef, {
+        membership: plan,
+        membershipStatus: "ACTIVE",
+        membershipBillingCycle: cycle,
+        membershipStartedAt: serverTimestamp(),
+        membershipExpiresAt: expiresAt,
+        membershipRequestId: requestId
+      });
+    }
+
+    transaction.update(requestRef, {
+      status: decision,
+      reviewedAt: serverTimestamp(),
+      reviewedBy: auth.currentUser.uid,
+      ...(decision === "APPROVED" ? {
+        startedAt: serverTimestamp(),
+        expiresAt: expiresAt
+      } : {})
+    });
+
+    transaction.delete(lockRef);
+  });
+
+  return {
+    success: true,
+    status: decision
+  };
+};
+
+console.log("KARDRIVER MEMBERSHIP FIRESTORE API READY");
+
+
+// MEMBERSHIP: FRONTEND AUTO-EXPIRY CALLABLE
+window.syncMembershipExpiry = async function() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sila login dahulu.");
+
+  const syncExpiry = httpsCallable(functions, "syncMembershipExpiry");
+  const response = await syncExpiry({});
+
+  return response.data;
 };

@@ -5,7 +5,13 @@ service cloud.firestore {
 
     function isPlatformAdmin() {
       return request.auth != null
-        && request.auth.token.platformAdmin == true;
+        && request.auth.token.get("platformAdmin", false) == true;
+    }
+
+    function isActiveUser() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == "ACTIVE";
     }
 
     function allowedRole(role) {
@@ -22,26 +28,51 @@ service cloud.firestore {
       return /databases/$(database)/documents/role_requests/$(requestId);
     }
 
+    function membershipRequestPath(requestId) {
+      return /databases/$(database)/documents/membership_requests/$(requestId);
+    }
+
+    function membershipLockPath(uid) {
+      return /databases/$(database)/documents/membership_request_locks/$(uid);
+    }
+
+    function validMembershipPrice(plan, cycle, amount) {
+      return (
+        plan == "PRO" && cycle == "MONTHLY" && amount == 29.99
+      ) || (
+        plan == "PRO" && cycle == "YEARLY" && amount == 299
+      ) || (
+        plan == "MASTERCLASS_ELITE" && cycle == "MONTHLY" && amount == 89.99
+      ) || (
+        plan == "MASTERCLASS_ELITE" && cycle == "YEARLY" && amount == 899
+      );
+    }
+
     match /users/{userId} {
-      allow read: if (
+      // Pengguna boleh membaca profil sendiri tanpa rekursi Rules.
+      allow get: if (
         request.auth != null
         && request.auth.uid == userId
       ) || isPlatformAdmin();
+
+      // Senarai semua profil hanya untuk Platform Admin.
+      allow list: if isPlatformAdmin();
 
       allow create: if request.auth != null
         && request.auth.uid == userId
         && request.resource.data.membership == "FREE"
         && request.resource.data.status == "ACTIVE"
-        && request.resource.data.roles == ["OWNER"]
-        && request.resource.data.activeRole == "OWNER"
+        && request.resource.data.roles == ["DRIVER"]
+        && request.resource.data.activeRole == "DRIVER"
         && request.resource.data.keys().hasOnly([
           "name", "email", "membership",
           "status", "createdAt", "roles", "activeRole"
         ]);
 
       allow update: if (
-        request.auth != null
+        isActiveUser()
         && request.auth.uid == userId
+        && resource.data.status == "ACTIVE"
         && request.resource.data.membership == resource.data.membership
         && request.resource.data.status == resource.data.status
         && request.resource.data.roles == resource.data.roles
@@ -53,19 +84,49 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data)
           .affectedKeys().hasOnly(["roles"])
         && request.resource.data.roles is list
+        && request.resource.data.roles.toSet().size()
+          == request.resource.data.roles.size()
         && request.resource.data.roles.hasAll(resource.data.roles)
         && request.resource.data.roles.hasAll(["OWNER"])
         && request.resource.data.roles.hasOnly([
           "OWNER", "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"
         ])
         && request.resource.data.roles.size() <= 5
+      ) || (
+        isPlatformAdmin()
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["status"])
+        && request.resource.data.status in ["ACTIVE", "SUSPENDED"]
+        && (
+          !("OWNER" in resource.data.roles)
+          || request.resource.data.status == "ACTIVE"
+        )
+      ) || (
+        isPlatformAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "membership", "membershipStatus", "membershipBillingCycle",
+          "membershipStartedAt", "membershipExpiresAt", "membershipRequestId"
+        ])
+        && request.resource.data.membership in ["PRO", "MASTERCLASS_ELITE"]
+        && request.resource.data.membershipStatus == "ACTIVE"
+        && request.resource.data.membershipBillingCycle in ["MONTHLY", "YEARLY"]
+        && request.resource.data.membershipStartedAt == request.time
+        && request.resource.data.membershipExpiresAt is timestamp
+        && request.resource.data.membershipExpiresAt > request.time
+        && request.resource.data.membershipRequestId is string
+        && existsAfter(membershipRequestPath(request.resource.data.membershipRequestId))
+        && getAfter(membershipRequestPath(request.resource.data.membershipRequestId)).data.userUid == userId
+        && getAfter(membershipRequestPath(request.resource.data.membershipRequestId)).data.status == "APPROVED"
+        && getAfter(membershipRequestPath(request.resource.data.membershipRequestId)).data.requestedPlan == request.resource.data.membership
+        && getAfter(membershipRequestPath(request.resource.data.membershipRequestId)).data.billingCycle == request.resource.data.membershipBillingCycle
+        && !existsAfter(membershipLockPath(userId))
       );
 
       allow delete: if false;
     }
 
     match /role_requests/{requestId} {
-      allow create: if request.auth != null
+      allow create: if isActiveUser()
         && request.resource.data.userUid == request.auth.uid
         && allowedRole(request.resource.data.requestedRole)
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
@@ -84,7 +145,7 @@ service cloud.firestore {
         )).data.requestId == requestId;
 
       allow read: if (
-        request.auth != null
+        isActiveUser()
         && resource.data.userUid == request.auth.uid
       ) || isPlatformAdmin();
 
@@ -123,7 +184,7 @@ service cloud.firestore {
     match /role_request_locks/{lockId} {
       allow get: if isPlatformAdmin()
         || (
-          request.auth != null
+          isActiveUser()
           && (
             lockId == request.auth.uid + "_DRIVER"
             || lockId == request.auth.uid + "_MECHANIC"
@@ -134,7 +195,7 @@ service cloud.firestore {
 
       allow list: if isPlatformAdmin();
 
-      allow create: if request.auth != null
+      allow create: if isActiveUser()
         && request.resource.data.userUid == request.auth.uid
         && allowedRole(request.resource.data.requestedRole)
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
@@ -177,5 +238,207 @@ service cloud.firestore {
           resource.data.requestId
         )).data.status == "REJECTED";
     }
+
+    // MEMBERSHIP REQUESTS - user submission and Platform Admin review
+    match /membership_requests/{requestId} {
+      allow create: if isActiveUser()
+        && request.resource.data.userUid == request.auth.uid
+        && request.resource.data.requestedPlan in ["PRO", "MASTERCLASS_ELITE"]
+        && request.resource.data.billingCycle in ["MONTHLY", "YEARLY"]
+        && validMembershipPrice(
+          request.resource.data.requestedPlan,
+          request.resource.data.billingCycle,
+          request.resource.data.amount
+        )
+        && request.resource.data.paymentReference is string
+        && request.resource.data.paymentReference.size() >= 4
+        && request.resource.data.paymentReference.size() <= 100
+        && request.resource.data.status == "PENDING"
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.keys().hasOnly([
+          "userUid", "requestedPlan", "billingCycle", "amount",
+          "paymentReference", "status", "createdAt"
+        ])
+        && existsAfter(membershipLockPath(request.auth.uid))
+        && getAfter(membershipLockPath(request.auth.uid)).data.userUid == request.auth.uid
+        && getAfter(membershipLockPath(request.auth.uid)).data.requestId == requestId
+        && getAfter(membershipLockPath(request.auth.uid)).data.status == "PENDING";
+
+      allow get, list: if isPlatformAdmin()
+        || (isActiveUser() && resource.data.userUid == request.auth.uid);
+
+      allow update: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && request.resource.data.status in ["APPROVED", "REJECTED"]
+        && request.resource.data.reviewedAt == request.time
+        && request.resource.data.reviewedBy == request.auth.uid
+        && !existsAfter(membershipLockPath(resource.data.userUid))
+        && (
+          (
+            request.resource.data.status == "REJECTED"
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              "status", "reviewedAt", "reviewedBy"
+            ])
+          )
+          ||
+          (
+            request.resource.data.status == "APPROVED"
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              "status", "reviewedAt", "reviewedBy", "startedAt", "expiresAt"
+            ])
+            && request.resource.data.startedAt == request.time
+            && request.resource.data.expiresAt is timestamp
+            && request.resource.data.expiresAt > request.time
+            && getAfter(
+              /databases/$(database)/documents/users/$(resource.data.userUid)
+            ).data.membership == resource.data.requestedPlan
+            && getAfter(
+              /databases/$(database)/documents/users/$(resource.data.userUid)
+            ).data.membershipBillingCycle == resource.data.billingCycle
+            && getAfter(
+              /databases/$(database)/documents/users/$(resource.data.userUid)
+            ).data.membershipRequestId == requestId
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // MEMBERSHIP LOCK - one pending request per user
+    match /membership_request_locks/{uid} {
+      allow get: if isPlatformAdmin()
+        || (isActiveUser() && request.auth.uid == uid);
+
+      allow list: if isPlatformAdmin();
+
+      allow create: if isActiveUser()
+        && request.auth.uid == uid
+        && request.resource.data.userUid == uid
+        && request.resource.data.status == "PENDING"
+        && request.resource.data.requestId is string
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.keys().hasOnly([
+          "userUid", "requestId", "status", "createdAt"
+        ])
+        && existsAfter(membershipRequestPath(request.resource.data.requestId))
+        && getAfter(membershipRequestPath(request.resource.data.requestId)).data.userUid == uid
+        && getAfter(membershipRequestPath(request.resource.data.requestId)).data.status == "PENDING";
+
+      allow delete: if isPlatformAdmin()
+        && resource.data.status == "PENDING"
+        && getAfter(membershipRequestPath(resource.data.requestId)).data.status
+          in ["APPROVED", "REJECTED"];
+
+      allow update: if false;
+    }
+
+    // Community Directory: Spark-only secure profile access
+    match /community_profiles/{uid} {
+      function userPath() {
+        return /databases/$(database)/documents/users/$(uid);
+      }
+
+      allow get: if (
+        isActiveUser()
+        && request.auth.uid == uid
+      ) || isPlatformAdmin();
+
+      allow list: if (
+        isActiveUser()
+        && resource.data.status == "ACTIVE"
+      ) || isPlatformAdmin();
+
+      allow create: if (
+        isActiveUser()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.status == "ACTIVE"
+        && request.resource.data.displayName == getAfter(userPath()).data.name
+        && getAfter(userPath()).data.status == "ACTIVE"
+        && request.resource.data.keys().hasOnly([
+          "uid", "displayName", "photoURL", "status", "updatedAt"
+        ])
+      ) || (
+        isPlatformAdmin()
+        && request.resource.data.uid == uid
+        && request.resource.data.status == "ACTIVE"
+        && request.resource.data.displayName == getAfter(userPath()).data.name
+        && getAfter(userPath()).data.status == "ACTIVE"
+        && request.resource.data.keys().hasOnly([
+          "uid", "displayName", "photoURL", "status", "updatedAt"
+        ])
+      );
+
+      allow update: if (
+        isActiveUser()
+        && request.auth.uid == uid
+        && resource.data.uid == uid
+        && request.resource.data.uid == uid
+        && resource.data.status == "ACTIVE"
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.displayName == getAfter(userPath()).data.name
+        && getAfter(userPath()).data.status == "ACTIVE"
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["displayName", "photoURL", "updatedAt"])
+      ) || (
+        isPlatformAdmin()
+        && resource.data.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(["status"])
+        && (
+          (request.resource.data.status == "ACTIVE"
+            && getAfter(userPath()).data.status == "ACTIVE")
+          ||
+          (request.resource.data.status == "INACTIVE"
+            && getAfter(userPath()).data.status == "SUSPENDED")
+        )
+      );
+
+      allow delete: if false;
+    }
+
+
+    // KARDRIVER LIVE CHAT: PUBLIC CHANNELS
+    match /chat_rooms/{channelId}/messages/{messageId} {
+      function validChannel() {
+        return channelId in ["general", "automotive", "mechanic", "forex"];
+      }
+
+      function activeChatProfile() {
+        return exists(
+          /databases/$(database)/documents/community_profiles/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/community_profiles/$(request.auth.uid)
+        ).data.status == "ACTIVE";
+      }
+
+      allow get, list: if validChannel()
+        && (
+          (isActiveUser() && activeChatProfile())
+          || isPlatformAdmin()
+        );
+
+      allow create: if validChannel()
+        && isActiveUser()
+        && activeChatProfile()
+        && request.resource.data.keys().hasOnly([
+          "senderUid", "senderName", "text", "type", "createdAt"
+        ])
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.senderName ==
+          get(
+            /databases/$(database)/documents/community_profiles/$(request.auth.uid)
+          ).data.displayName
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 3000
+        && request.resource.data.type == "MESSAGE"
+        && request.resource.data.createdAt == request.time;
+
+      allow update, delete: if false;
+    }
+
   }
 }

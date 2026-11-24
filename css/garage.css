@@ -602,3 +602,107 @@ body.theme-admin .navbtn.active {
   color: #ffffff;
   text-shadow: 0 0 8px #22d3ee, 0 0 18px #22d3ee;
 }
+
+/* ADMIN USER STATUS BUTTON COLORS */
+body.theme-admin .admin-user-card button.action {
+  color: #ffffff !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+body.theme-admin .admin-user-card button.action[style*="#991B1B"] {
+  background: linear-gradient(135deg, #991B1B, #DC2626) !important;
+  border-color: #EF4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.45) !important;
+}
+
+body.theme-admin .admin-user-card button.action[style*="#065F46"] {
+  background: linear-gradient(135deg, #065F46, #16A34A) !important;
+  border-color: #22C55E !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.45) !important;
+}
+
+/* =====================================================
+   KARDRIVER MEMBERSHIP V1 - TRON LEGACY DESIGN
+   ===================================================== */
+
+#membershipProfileCard {
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.10);
+}
+
+#membershipProfileCard .membership-plan {
+  position: relative;
+  overflow: hidden;
+  margin: 14px 0;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #07182a, #102d48);
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  color: #e6f7ff;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.10);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#membershipProfileCard .membership-plan:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.25);
+}
+
+#membershipProfileCard .membership-plan strong {
+  display: block;
+  color: #67e8f9;
+  font-size: 1.08rem;
+  letter-spacing: 0.5px;
+}
+
+#membershipProfileCard .membership-plan p {
+  margin: 9px 0 0;
+  color: #c7e6f5;
+  line-height: 1.6;
+}
+
+/* FREE */
+#membershipProfileCard .membership-plan-free {
+  border-color: #38bdf8;
+}
+
+/* PRO */
+#membershipProfileCard .membership-plan-pro {
+  background: linear-gradient(135deg, #061b35, #075985);
+  border: 1px solid #38bdf8;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.20);
+}
+
+#membershipProfileCard .membership-plan-pro strong {
+  color: #7dd3fc;
+}
+
+/* MASTERCLASS ELITE */
+#membershipProfileCard .membership-plan-elite {
+  background: linear-gradient(135deg, #090b10, #252a32, #111827);
+  border: 1px solid #c6a75e;
+  box-shadow: 0 0 20px rgba(198, 167, 94, 0.18);
+}
+
+#membershipProfileCard .membership-plan-elite strong {
+  color: #e8c879;
+}
+
+#membershipProfileCard .membership-plan-elite p {
+  color: #e2e0d8;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 600px) {
+  #membershipProfileCard .membership-plan {
+    padding: 16px;
+    margin: 11px 0;
+  }
+
+  #membershipProfileCard .membership-plan strong {
+    font-size: 1rem;
+  }
+}

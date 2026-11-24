@@ -782,13 +782,52 @@ body{padding-bottom:90px;}
    <button class="action" onclick="resetProfilePassword()" style="margin-top:10px;">RESET PASSWORD VIA EMAIL</button>
   </div>
  </div>
+ <div class="card" id="membershipCard">
+  <h3>KEAHLIAN SAYA / MY MEMBERSHIP</h3>
+  <p>Pelan semasa: <strong id="membershipCurrentPlan">FREE</strong></p>
+  <p id="membershipCurrentStatus">Memuatkan status Membership...</p>
+  <p id="membershipExpiryInfo">Memuatkan maklumat langganan...</p>
+ </div>
+
  <div class="card">
   <h3>PAKEJ KEAHLIAN / MEMBERSHIP PLANS</h3>
   <p><strong>FREE — RM0</strong><br>1 kenderaan · Akses asas.</p>
   <p><strong>PRO — RM29.99 / bulan · RM299 / tahun</strong><br>Sehingga 5 kenderaan.</p>
-  <p><strong>MASTERCLASS — RM89.99 / bulan · RM899 / tahun</strong><br>Sehingga 20 kenderaan.</p>
-  <div class="notice">Harga dan pakej dipaparkan sebagai maklumat. Pembayaran dan pengaktifan langganan sebenar belum diaktifkan.</div>
+  <button type="button" class="action" onclick="chooseMembershipPlan('PRO')">PILIH PRO</button>
+  <p><strong>MASTERCLASS ELITE — RM89.99 / bulan · RM899 / tahun</strong><br>Sehingga 20 kenderaan.</p>
+  <button type="button" class="action" onclick="chooseMembershipPlan('MASTERCLASS_ELITE')">PILIH MASTERCLASS ELITE</button>
  </div>
+
+ <div class="card" id="membershipRequestForm">
+  <h3>PERMOHONAN MEMBERSHIP</h3>
+  <label for="membershipPlanSelect">PILIH PAKEJ</label>
+  <select id="membershipPlanSelect">
+   <option value="">-- Pilih pakej --</option>
+   <option value="PRO">PRO</option>
+   <option value="MASTERCLASS_ELITE">MASTERCLASS ELITE</option>
+  </select>
+
+  <label for="membershipBillingCycle">TEMPOH LANGGANAN</label>
+  <select id="membershipBillingCycle">
+   <option value="MONTHLY">Bulanan</option>
+   <option value="YEARLY">Tahunan</option>
+  </select>
+
+  <p>Jumlah pembayaran: <strong id="membershipSelectedPrice">Sila pilih pakej.</strong></p>
+
+  <label for="membershipPaymentReference">RUJUKAN PEMBAYARAN</label>
+  <input id="membershipPaymentReference" type="text" maxlength="100" placeholder="Masukkan nombor rujukan pembayaran">
+
+  <button type="button" class="action" id="membershipSubmitButton" onclick="submitMembershipRequest()">HANTAR PERMOHONAN MEMBERSHIP</button>
+  <p id="membershipRequestStatus">Permohonan akan disemak secara manual oleh Admin.</p>
+  <div class="notice">Selepas membuat pembayaran, masukkan nombor rujukan pembayaran. Keahlian hanya diaktifkan selepas Admin mengesahkan permohonan.</div>
+ </div>
+
+ <div class="card">
+  <h3>SEJARAH PERMOHONAN MEMBERSHIP</h3>
+  <div id="membershipRequestHistory">Memuatkan sejarah permohonan...</div>
+ </div>
+
  <div class="card" id="roleManagementCard">
   <h3>ROLE MANAGEMENT</h3>
   <p>Peranan semasa: <strong id="profileActiveRole">OWNER</strong></p>
@@ -842,7 +881,23 @@ body{padding-bottom:90px;}
  </div>
 
  <div class="card">
-  <h3>USER MANAGEMENT</h3>
+    <h3>MEMBERSHIP MANAGEMENT</h3>
+    <p id="adminMembershipStatus">Menunggu data Membership...</p>
+    <div class="dashboard-grid">
+      <div class="stat">
+        <strong id="adminMembershipPending">0</strong>
+        <span>PENDING MEMBERSHIP</span>
+      </div>
+      <div class="stat">
+        <strong id="adminMembershipActive">0</strong>
+        <span>ACTIVE MEMBERSHIP</span>
+      </div>
+    </div>
+    <div id="adminMembershipRequestList"></div>
+  </div>
+
+  <div class="card">
+    <h3>USER MANAGEMENT</h3>
   <div id="adminUserList">Menunggu pengesahan Admin.</div>
  </div>
 
@@ -2131,6 +2186,7 @@ function checkSensorQuiz(){
  : "Belum tepat. Fikirkan sensor yang mengesan putaran crankshaft.";
 }
 </script>
+<script src="js/vehicle-store.js"></script>
 <script src="js/garage.js"></script>
 <script src="js/service.js"></script>
 <script src="js/car-health.js"></script>
@@ -2138,7 +2194,7 @@ function checkSensorQuiz(){
 <script src="js/dashboard.js"></script>
 <script src="js/auth.js"></script>
 <script type="module" src="js/firebase-auth.js"></script>
-<script src="js/profile.js"></script>
+<script src="js/profile.js?v=20261122-membership-dates-2"></script>
 <script src="js/admin.js"></script>
 <script src="js/community.js?v=202611201045"></script>
 <script src="js/community-chat.js?v=202611201045"></script>

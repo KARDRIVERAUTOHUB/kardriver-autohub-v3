@@ -1,4 +1,23 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "membership",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "membershipStatus",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "membershipExpiresAt",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }
