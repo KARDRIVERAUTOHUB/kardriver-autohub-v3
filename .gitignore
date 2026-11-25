@@ -42,6 +42,7 @@ ui-debug.log
 *.pre-role-lock.bak
 *.pre-transaction.bak
 test-*.cjs
+!test-membership-rules.cjs
 firebase.role-lock.json
 firestore.role-lock.rules
 
@@ -56,3 +57,7 @@ firebase.preview.json
 
 # Local backup files
 functions/*.backup*
+
+!test-role-isolated-audit.cjs
+!test-community-isolated-audit.cjs
+!test-firestore-isolated-audit.cjs

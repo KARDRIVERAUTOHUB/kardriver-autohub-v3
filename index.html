@@ -1030,22 +1030,118 @@ body{padding-bottom:90px;}
 
 <script>
 const dtcs=[
-{c:"P0101",n:"Mass Air Flow Sensor Range / Performance",m:"Julat atau prestasi bacaan sensor aliran udara tidak normal.",s:"Enjin kurang kuasa, idle tidak stabil atau penggunaan petrol meningkat.",p:"Sensor MAF kotor/rosak, kebocoran udara atau masalah wiring.",d:"Periksa saluran udara, connector, wiring dan bacaan live data MAF.",r:"Bersihkan atau ganti sensor hanya selepas ujian mengesahkan puncanya."},
-{c:"P0113",n:"Intake Air Temperature Sensor 1 Circuit High",m:"Isyarat litar sensor suhu udara masuk terlalu tinggi.",s:"Lampu check engine dan bacaan suhu udara tidak munasabah.",p:"Sensor IAT, connector tercabut atau litar terbuka.",d:"Semak connector dan bandingkan bacaan IAT dengan suhu persekitaran.",r:"Baiki wiring atau ganti sensor jika disahkan rosak."},
-{c:"P0128",n:"Coolant Thermostat Below Regulating Temperature",m:"Suhu coolant tidak mencapai suhu operasi yang dijangka.",s:"Enjin lambat panas atau pemanas kabin kurang panas.",p:"Thermostat terbuka, coolant rendah atau sensor suhu bermasalah.",d:"Semak paras coolant dan bandingkan suhu ECT dengan suhu sebenar.",r:"Baiki kebocoran atau ganti thermostat/sensor selepas diagnosis."},
-{c:"P0171",n:"System Too Lean Bank 1",m:"Campuran udara dan bahan api terlalu kurus pada Bank 1.",s:"Idle kasar, enjin tersengguk atau kuasa berkurang.",p:"Vacuum leak, MAF kotor, tekanan bahan api rendah.",d:"Periksa kebocoran intake, fuel pressure dan fuel trim.",r:"Baiki kebocoran atau sistem bahan api berdasarkan hasil ujian."},
-{c:"P0172",n:"System Too Rich Bank 1",m:"Campuran udara dan bahan api terlalu kaya.",s:"Penggunaan petrol tinggi, bau petrol atau asap hitam.",p:"Injector bocor, tekanan bahan api tinggi atau sensor MAF/ECT.",d:"Semak fuel trim, injector, tekanan bahan api dan bacaan sensor.",r:"Baiki punca campuran kaya selepas ujian."},
-{c:"P0300",n:"Random / Multiple Cylinder Misfire",m:"Misfire berlaku secara rawak atau melibatkan beberapa silinder.",s:"Enjin bergegar, kuasa lemah dan check engine berkelip.",p:"Spark plug, ignition coil, injector, compression atau kebocoran udara.",d:"Semak misfire count, ignition, fuel dan compression.",r:"Baiki komponen yang gagal ujian. Jika lampu berkelip, elakkan memandu."},
-{c:"P0301",n:"Cylinder 1 Misfire Detected",m:"ECU mengesan misfire pada silinder nombor 1.",s:"Enjin bergegar, idle tidak stabil dan kuasa kurang.",p:"Spark plug, coil, injector atau compression silinder 1.",d:"Periksa plug dan coil, kemudian uji injector dan compression.",r:"Baiki punca yang disahkan; jangan terus menukar semua komponen."},
-{c:"P0325",n:"Knock Sensor 1 Circuit",m:"Masalah pada litar sensor ketukan nombor 1.",s:"Check engine dan kemungkinan prestasi enjin menurun.",p:"Sensor, connector atau wiring bermasalah.",d:"Periksa wiring, connector dan sensor mengikut manual model.",r:"Baiki litar atau ganti sensor jika ujian mengesahkan kerosakan."},
-{c:"P0328",n:"Knock Sensor 1 Circuit High Input",m:"Isyarat voltan litar sensor ketukan terlalu tinggi.",s:"Check engine, kuasa berkurang atau penggunaan petrol meningkat.",p:"Sensor rosak, litar terbuka, short to voltage atau connector bermasalah.",d:"Periksa connector, wiring, ground dan signal mengikut spesifikasi pengeluar.",r:"Baiki litar atau ganti sensor selepas diagnosis. Nilai voltan berbeza mengikut kenderaan."},
-{c:"P0335",n:"Crankshaft Position Sensor A Circuit",m:"Masalah pada litar sensor kedudukan crankshaft A.",s:"Enjin sukar hidup, mati tiba-tiba atau tidak boleh start.",p:"Sensor CKP, wiring, connector atau reluctor.",d:"Semak signal RPM semasa cranking dan periksa wiring/sensor.",r:"Baiki litar atau ganti sensor jika ujian mengesahkan."},
-{c:"P0340",n:"Camshaft Position Sensor A Circuit",m:"Masalah pada litar sensor kedudukan camshaft A.",s:"Sukar start, enjin tidak lancar atau kuasa berkurang.",p:"Sensor CMP, wiring, connector atau timing enjin.",d:"Semak signal sensor dan timing menggunakan prosedur servis.",r:"Baiki wiring, sensor atau timing berdasarkan diagnosis."},
-{c:"P0401",n:"Exhaust Gas Recirculation Flow Insufficient",m:"Aliran sistem EGR tidak mencukupi.",s:"Check engine, prestasi menurun atau knocking dalam keadaan tertentu.",p:"Saluran EGR tersumbat, valve atau sensor berkaitan.",d:"Periksa laluan EGR, valve dan arahan/feedback scanner.",r:"Bersihkan atau baiki sistem EGR jika disahkan."},
-{c:"P0420",n:"Catalyst System Efficiency Below Threshold",m:"Kecekapan catalytic converter di bawah ambang yang ditetapkan.",s:"Check engine dan mungkin penggunaan petrol meningkat.",p:"Catalytic converter, exhaust leak atau sensor oksigen.",d:"Periksa kebocoran ekzos dan analisis data sensor O2.",r:"Sahkan sensor serta keadaan catalytic converter sebelum mengganti."},
-{c:"P0442",n:"EVAP System Small Leak Detected",m:"Sistem EVAP mengesan kebocoran kecil.",s:"Biasanya check engine tanpa perubahan prestasi ketara.",p:"Penutup tangki, hos EVAP atau sambungan bocor.",d:"Periksa penutup tangki dan jalankan smoke test jika perlu.",r:"Baiki kebocoran yang ditemui."},
-{c:"P0455",n:"EVAP System Large Leak Detected",m:"Sistem EVAP mengesan kebocoran besar.",s:"Check engine dan kemungkinan bau petrol.",p:"Penutup tangki longgar, hos tercabut atau kebocoran EVAP.",d:"Periksa sambungan dan gunakan smoke test mengikut prosedur.",r:"Baiki kebocoran dan uji semula sistem."},
-{c:"P0500",n:"Vehicle Speed Sensor Malfunction",m:"Isyarat sensor kelajuan kenderaan tidak normal.",s:"Speedometer tidak berfungsi atau pertukaran gear terganggu.",p:"Sensor kelajuan, wiring atau sistem ABS/ECU bergantung model.",d:"Semak live data kelajuan dan litar sensor menggunakan wiring diagram.",r:"Baiki sensor atau wiring selepas punca dikenal pasti."}
+  {
+    "c": "P0101",
+    "n": "Mass Air Flow Sensor Range / Performance",
+    "m": "Julat atau prestasi bacaan sensor aliran udara tidak normal.",
+    "s": "Enjin kurang kuasa, idle tidak stabil atau penggunaan petrol meningkat.",
+    "p": "Sensor MAF kotor/rosak, kebocoran udara atau masalah wiring."
+  },
+  {
+    "c": "P0113",
+    "n": "Intake Air Temperature Sensor 1 Circuit High",
+    "m": "Isyarat litar sensor suhu udara masuk terlalu tinggi.",
+    "s": "Lampu check engine dan bacaan suhu udara tidak munasabah.",
+    "p": "Sensor IAT, connector tercabut atau litar terbuka."
+  },
+  {
+    "c": "P0128",
+    "n": "Coolant Thermostat Below Regulating Temperature",
+    "m": "Suhu coolant tidak mencapai suhu operasi yang dijangka.",
+    "s": "Enjin lambat panas atau pemanas kabin kurang panas.",
+    "p": "Thermostat terbuka, coolant rendah atau sensor suhu bermasalah."
+  },
+  {
+    "c": "P0171",
+    "n": "System Too Lean Bank 1",
+    "m": "Campuran udara dan bahan api terlalu kurus pada Bank 1.",
+    "s": "Idle kasar, enjin tersengguk atau kuasa berkurang.",
+    "p": "Vacuum leak, MAF kotor, tekanan bahan api rendah."
+  },
+  {
+    "c": "P0172",
+    "n": "System Too Rich Bank 1",
+    "m": "Campuran udara dan bahan api terlalu kaya.",
+    "s": "Penggunaan petrol tinggi, bau petrol atau asap hitam.",
+    "p": "Injector bocor, tekanan bahan api tinggi atau sensor MAF/ECT."
+  },
+  {
+    "c": "P0300",
+    "n": "Random / Multiple Cylinder Misfire",
+    "m": "Misfire berlaku secara rawak atau melibatkan beberapa silinder.",
+    "s": "Enjin bergegar, kuasa lemah dan check engine berkelip.",
+    "p": "Spark plug, ignition coil, injector, compression atau kebocoran udara."
+  },
+  {
+    "c": "P0301",
+    "n": "Cylinder 1 Misfire Detected",
+    "m": "ECU mengesan misfire pada silinder nombor 1.",
+    "s": "Enjin bergegar, idle tidak stabil dan kuasa kurang.",
+    "p": "Spark plug, coil, injector atau compression silinder 1."
+  },
+  {
+    "c": "P0325",
+    "n": "Knock Sensor 1 Circuit",
+    "m": "Masalah pada litar sensor ketukan nombor 1.",
+    "s": "Check engine dan kemungkinan prestasi enjin menurun.",
+    "p": "Sensor, connector atau wiring bermasalah."
+  },
+  {
+    "c": "P0328",
+    "n": "Knock Sensor 1 Circuit High Input",
+    "m": "Isyarat voltan litar sensor ketukan terlalu tinggi.",
+    "s": "Check engine, kuasa berkurang atau penggunaan petrol meningkat.",
+    "p": "Sensor rosak, litar terbuka, short to voltage atau connector bermasalah."
+  },
+  {
+    "c": "P0335",
+    "n": "Crankshaft Position Sensor A Circuit",
+    "m": "Masalah pada litar sensor kedudukan crankshaft A.",
+    "s": "Enjin sukar hidup, mati tiba-tiba atau tidak boleh start.",
+    "p": "Sensor CKP, wiring, connector atau reluctor."
+  },
+  {
+    "c": "P0340",
+    "n": "Camshaft Position Sensor A Circuit",
+    "m": "Masalah pada litar sensor kedudukan camshaft A.",
+    "s": "Sukar start, enjin tidak lancar atau kuasa berkurang.",
+    "p": "Sensor CMP, wiring, connector atau timing enjin."
+  },
+  {
+    "c": "P0401",
+    "n": "Exhaust Gas Recirculation Flow Insufficient",
+    "m": "Aliran sistem EGR tidak mencukupi.",
+    "s": "Check engine, prestasi menurun atau knocking dalam keadaan tertentu.",
+    "p": "Saluran EGR tersumbat, valve atau sensor berkaitan."
+  },
+  {
+    "c": "P0420",
+    "n": "Catalyst System Efficiency Below Threshold",
+    "m": "Kecekapan catalytic converter di bawah ambang yang ditetapkan.",
+    "s": "Check engine dan mungkin penggunaan petrol meningkat.",
+    "p": "Catalytic converter, exhaust leak atau sensor oksigen."
+  },
+  {
+    "c": "P0442",
+    "n": "EVAP System Small Leak Detected",
+    "m": "Sistem EVAP mengesan kebocoran kecil.",
+    "s": "Biasanya check engine tanpa perubahan prestasi ketara.",
+    "p": "Penutup tangki, hos EVAP atau sambungan bocor."
+  },
+  {
+    "c": "P0455",
+    "n": "EVAP System Large Leak Detected",
+    "m": "Sistem EVAP mengesan kebocoran besar.",
+    "s": "Check engine dan kemungkinan bau petrol.",
+    "p": "Penutup tangki longgar, hos tercabut atau kebocoran EVAP."
+  },
+  {
+    "c": "P0500",
+    "n": "Vehicle Speed Sensor Malfunction",
+    "m": "Isyarat sensor kelajuan kenderaan tidak normal.",
+    "s": "Speedometer tidak berfungsi atau pertukaran gear terganggu.",
+    "p": "Sensor kelajuan, wiring atau sistem ABS/ECU bergantung model."
+  }
 ];
 
 const courses=[
@@ -1098,21 +1194,116 @@ if(page==="report" && window.renderVehicleReport)window.renderVehicleReport();
  window.scrollTo(0,0);
 }
 function toggleLang(){alert("Language mode: Bahasa Melayu / English. Kandungan pembelajaran dipaparkan dalam dua bahasa secara berperingkat.");}
+function dtcEscape(value){
+ return String(value ?? "").replace(/[&<>"']/g, ch => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[ch]));
+}
+
 function quickFind(){
  const q=document.getElementById("quickSearch").value.trim().toUpperCase();
  const found=dtcs.find(x=>x.c===q);
- document.getElementById("quickResult").innerHTML=found?`<strong style="color:#22d3ee">${found.c}</strong><br>${found.n}<br>${found.m}`:"Kod belum dijumpai dalam demo database.";
+ document.getElementById("quickResult").innerHTML=found
+  ? `<strong style="color:#22d3ee">${dtcEscape(found.c)}</strong><br>${dtcEscape(found.n)}<br>${dtcEscape(found.m)}`
+  : "Kod belum dijumpai dalam database.";
 }
+
 function renderDTC(){
- const q=document.getElementById("dtcSearch").value.trim().toUpperCase();
+ const input=document.getElementById("dtcSearch");
+ const q=input.value.trim().toUpperCase();
  const list=dtcs.filter(x=>x.c.includes(q)||x.n.toUpperCase().includes(q));
- document.getElementById("dtcList").innerHTML=list.map(x=>`<div class="item" onclick="showDTC('${x.c}')"><strong>${x.c}</strong><p>${x.n}</p><span class="tag">LIHAT MAKLUMAT / VIEW DETAILS</span></div>`).join("")||"<p>Kod tidak dijumpai.</p>";
+ document.getElementById("dtcList").innerHTML=list.map(x=>
+  `<div class="item" onclick="showDTC('${dtcEscape(x.c)}')">
+   <strong>${dtcEscape(x.c)}</strong>
+   <p>${dtcEscape(x.n)}</p>
+   <span class="tag">LIHAT MAKLUMAT / VIEW DETAILS</span>
+  </div>`
+ ).join("")||"<p>Kod tidak dijumpai.</p>";
 }
-function showDTC(code){
- const x=dtcs.find(a=>a.c===code);if(!x)return;
- const box=document.getElementById("dtcDetail");box.classList.remove("hidden");
- box.innerHTML=`<h2>${x.c}</h2><h3>${x.n}</h3><p><strong>Maksud / Meaning</strong><br>${x.m}</p><p><strong>Simptom / Symptoms</strong><br>${x.s}</p><div><strong>Punca / Possible causes</strong><ul>${x.p.split(/,\s*|\s+atau\s+/).map(c => "<li>" + c.trim() + "</li>").join("")}</ul></div><p><strong>Diagnosis</strong><br>${x.d}</p><p><strong>Penyelesaian / Repair direction</strong><br>${x.r}</p>`;
+
+async function showDTC(code){
+ const x=dtcs.find(a=>a.c===code);
+ if(!x)return;
+
+ const box=document.getElementById("dtcDetail");
+ box.classList.remove("hidden");
+ box.innerHTML="<p>Memuatkan maklumat DTC daripada Firebase...</p>";
  box.scrollIntoView({behavior:"smooth"});
+
+ try{
+  if(typeof window.firebaseGetDTCDetails!=="function"){
+   throw new Error("Sambungan Firebase DTC belum tersedia. Sila refresh halaman.");
+  }
+
+  const result=await window.firebaseGetDTCDetails(code);
+  if(!result || result.code!==code || !result.free){
+   throw new Error("Respons data DTC tidak sah.");
+  }
+
+  const tier=result.tier||"FREE";
+  const free=result.free;
+  const pro=result.pro||null;
+  const elite=result.elite||null;
+
+  let content=`
+   <span class="tag">${dtcEscape(tier)} ACCESS</span>
+   <h2>${dtcEscape(result.code)}</h2>
+   <h3>${dtcEscape(result.name)}</h3>
+   <p><strong>Maksud / Meaning</strong><br>${dtcEscape(free.m)}</p>
+   <p><strong>Simptom / Symptoms</strong><br>${dtcEscape(free.s)}</p>
+   <div><strong>Punca / Possible causes</strong>
+    <p>${dtcEscape(free.p)}</p>
+   </div>
+  `;
+
+  if(pro){
+   const tests=Array.isArray(pro.tests)?pro.tests:[];
+   content+=`
+    <hr>
+    <h3>PRO DIAGNOSTIC</h3>
+    <p><strong>Diagnosis</strong><br>${dtcEscape(pro.diagnosis)}</p>
+    <strong>Ujian / Diagnostic Tests</strong>
+    <ul>${tests.map(item=>`<li>${dtcEscape(item)}</li>`).join("")}</ul>
+    <p><strong>Penyelesaian / Repair</strong><br>${dtcEscape(pro.repair)}</p>
+   `;
+  }else{
+   content+=`
+    <div class="notice">
+     <strong>Kandungan PRO dikunci.</strong>
+     <p>Naik taraf ke PRO untuk akses diagnosis, ujian dan panduan pembaikan terperinci.</p>
+    </div>
+   `;
+  }
+
+  if(elite){
+   const advanced=Array.isArray(elite.advanced)?elite.advanced:[];
+   content+=`
+    <hr>
+    <h3>MASTERCLASS ELITE</h3>
+    <p><strong>Analisis Lanjutan</strong><br>${dtcEscape(elite.analysis)}</p>
+    <strong>Advanced Diagnostic</strong>
+    <ul>${advanced.map(item=>`<li>${dtcEscape(item)}</li>`).join("")}</ul>
+    <p><strong>Case Study</strong><br>${dtcEscape(elite.caseStudy)}</p>
+   `;
+  }else if(tier==="PRO"){
+   content+=`
+    <div class="notice">
+     <strong>Kandungan MASTERCLASS ELITE dikunci.</strong>
+     <p>Naik taraf ke MASTERCLASS ELITE untuk analisis lanjutan dan kajian kes.</p>
+    </div>
+   `;
+  }
+
+  box.innerHTML=content;
+  box.scrollIntoView({behavior:"smooth"});
+ }catch(error){
+  console.error("DTC Firebase Error:",error);
+  box.innerHTML=`
+   <h3>Maklumat DTC tidak dapat dimuatkan</h3>
+   <p>${dtcEscape(error.message||"Ralat sambungan. Sila cuba semula.")}</p>
+   <button class="action" onclick="showDTC('${dtcEscape(code)}')">CUBA SEMULA</button>
+  `;
+ }
 }
 function renderCourses(){
  document.getElementById("courseList").innerHTML=courses.map((x,i)=>`<div class="item"><span class="tag">MODUL 0${i+1}</span><h3>${x[0]}</h3><p>${x[1]}</p><button class="action" onclick="openLesson(${i})">BUKA MODUL / OPEN MODULE</button></div>`).join("");
@@ -2003,14 +2194,13 @@ function analyzeAiMechanic(saveHistory=true){
 
  if(found){
   const causes=found.p.split(/,\s*|\s+atau\s+/).map(x=>x.trim()).filter(Boolean);
-  const steps=found.d.split(/[.;]\s*/).filter(Boolean);
-  html+=`<div class="ai-result"><h3>KOD DTC DAN MAKSUD</h3><p><strong>${aiEscape(found.c)} — ${aiEscape(found.n)}</strong></p><p>${aiEscape(found.m)}</p><h3>KEMUNGKINAN PUNCA</h3><ul>${causes.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ul><h3>LANGKAH PEMERIKSAAN</h3><ol>${steps.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ol><h3>CADANGAN PEMBAIKAN</h3><p>${aiEscape(found.r)}</p></div>`;
+  html+=`<div class="ai-result"><h3>KOD DTC DAN MAKSUD</h3><p><strong>${aiEscape(found.c)} — ${aiEscape(found.n)}</strong></p><p>${aiEscape(found.m)}</p><h3>KEMUNGKINAN PUNCA</h3><ul>${causes.map(x=>`<li>${aiEscape(x)}</li>`).join("")}</ul><p>Analisis diagnosis, ujian dan panduan pembaikan terperinci boleh dibuka melalui DTC Database mengikut tahap membership anda.</p><button type="button" class="action" onclick="go('dtc');setTimeout(()=>showDTC('${aiEscape(found.c)}'),100)">BUKA DTC DATABASE</button></div>`;
  }
 
  if(candidates.length){
   html+=`<div class="ai-result"><h3>PADANAN SIMPTOM / POSSIBLE DTC MATCHES</h3><p>Berikut ialah kod yang mungkin berkaitan berdasarkan kata kunci simptom. Ini bukan pengesahan kerosakan.</p>`;
   candidates.forEach(item=>{
-   html+=`<p><strong>${aiEscape(item.c)} — ${aiEscape(item.n)}</strong><br>${aiEscape(item.s)}<br><strong>Punca mungkin:</strong> ${aiEscape(item.p)}<br><strong>Pemeriksaan:</strong> ${aiEscape(item.d)}</p>`;
+   html+=`<p><strong>${aiEscape(item.c)} — ${aiEscape(item.n)}</strong><br>${aiEscape(item.s)}<br><strong>Punca mungkin:</strong> ${aiEscape(item.p)}</p>`;
   });
   html+="</div>";
  }else if(!found){

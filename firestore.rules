@@ -87,7 +87,10 @@ service cloud.firestore {
         && request.resource.data.roles.toSet().size()
           == request.resource.data.roles.size()
         && request.resource.data.roles.hasAll(resource.data.roles)
-        && request.resource.data.roles.hasAll(["OWNER"])
+        && (
+          !("OWNER" in resource.data.roles)
+          || request.resource.data.roles.hasAll(["OWNER"])
+        )
         && request.resource.data.roles.hasOnly([
           "OWNER", "DRIVER", "MECHANIC", "WORKSHOP", "FLEET"
         ])
