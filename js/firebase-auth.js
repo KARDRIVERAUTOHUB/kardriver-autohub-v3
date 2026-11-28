@@ -1407,12 +1407,105 @@ window.syncMembershipExpiry = async function() {
 };
 
 
-// DTC DATABASE: PANGGILAN CLOUD FUNCTION
+
+// DTC INDEX: FIRESTORE
+window.firebaseGetDTCIndex = async function() {
+  if (!auth.currentUser) throw new Error("Sila login dahulu.");
+  const snapshot = await getDocs(collection(db, "dtc_free"));
+  return snapshot.docs.map(item => {
+    const data = item.data();
+    return { c: data.c || item.id, n: data.n || "" };
+  }).sort((a, b) => a.c.localeCompare(b.c));
+};
+
+// DTC DATABASE: FIRESTORE DIRECT ACCESS
 window.firebaseGetDTCDetails = async function(code) {
   const user = auth.currentUser;
   if (!user) throw new Error("Sila login dahulu.");
+  if (typeof code !== "string" || !/^P[0-9A-F]{4}$/.test(code)) {
+    throw new Error("Kod DTC tidak sah.");
+  }
 
-  const getDTCDetails = httpsCallable(functions, "getDTCDetails");
-  const response = await getDTCDetails({ code });
-  return response.data;
+  const admin = await window.firebaseIsPlatformAdmin(true);
+  let tier = "FREE";
+
+  if (!admin) {
+    const profileSnapshot = await getDoc(doc(db, "users", user.uid));
+    if (!profileSnapshot.exists()) {
+      throw new Error("Profil pengguna tidak ditemui.");
+    }
+
+    const profile = profileSnapshot.data();
+    if (profile.status !== "ACTIVE") {
+      throw new Error("Akaun tidak aktif.");
+    }
+
+    const expiry = profile.membershipExpiresAt;
+    const expiryMs = typeof expiry?.toMillis === "function"
+      ? expiry.toMillis()
+      : typeof expiry?.seconds === "number"
+        ? expiry.seconds * 1000
+        : 0;
+
+    const paidActive =
+      profile.membershipStatus === "ACTIVE" &&
+      expiryMs > Date.now();
+
+    if (paidActive && profile.membership === "MASTERCLASS_ELITE") {
+      tier = "MASTERCLASS_ELITE";
+    } else if (paidActive && profile.membership === "PRO") {
+      tier = "PRO";
+    }
+  } else {
+    tier = "MASTERCLASS_ELITE";
+  }
+
+  const freeSnapshot = await getDoc(doc(db, "dtc_free", code));
+  if (!freeSnapshot.exists()) {
+    throw new Error("Kod DTC tidak ditemui dalam pangkalan data.");
+  }
+
+  const freeData = freeSnapshot.data();
+  const result = {
+    code: freeData.c,
+    name: freeData.n,
+    tier,
+    free: {
+      m: freeData.m,
+      s: freeData.s,
+      p: freeData.p
+    },
+    pro: null,
+    elite: null
+  };
+
+  if (tier === "PRO" || tier === "MASTERCLASS_ELITE") {
+    const proSnapshot = await getDoc(doc(db, "dtc_pro", code));
+    if (!proSnapshot.exists()) {
+      throw new Error("Rekod DTC PRO tidak lengkap.");
+    }
+
+    const data = proSnapshot.data();
+    result.pro = {
+      diagnosis: data.diagnosis,
+      tests: data.tests,
+      repair: data.repair
+    };
+  }
+
+  if (tier === "MASTERCLASS_ELITE") {
+    const eliteSnapshot = await getDoc(doc(db, "dtc_elite", code));
+    if (!eliteSnapshot.exists()) {
+      throw new Error("Rekod DTC ELITE tidak lengkap.");
+    }
+
+    const data = eliteSnapshot.data();
+    result.elite = {
+      analysis: data.analysis,
+      advanced: data.advanced,
+      caseStudy: data.caseStudy
+    };
+  }
+
+  return result;
 };

@@ -1029,7 +1029,7 @@ body{padding-bottom:90px;}
 <footer>KARDRIVER AUTOHUB · PROTOTYPE V0.2<br>Learn • Diagnose • Repair</footer>
 
 <script>
-const dtcs=[
+let dtcs=[
   {
     "c": "P0101",
     "n": "Mass Air Flow Sensor Range / Performance",
@@ -1200,19 +1200,51 @@ function dtcEscape(value){
  }[ch]));
 }
 
-function quickFind(){
+let dtcIndexReady = false;
+let dtcIndexPromise = null;
+
+async function ensureDTCIndex(){
+ if(dtcIndexReady)return true;
+ if(!dtcIndexPromise){
+  dtcIndexPromise=(async()=>{
+   if(typeof window.firebaseGetDTCIndex!=="function"){
+    throw new Error("Fungsi indeks DTC Firebase belum tersedia.");
+   }
+   const records=await window.firebaseGetDTCIndex();
+   if(!Array.isArray(records)||records.length===0){
+    throw new Error("Indeks DTC Firestore kosong atau tidak sah.");
+   }
+   dtcs=records;
+   dtcIndexReady=true;
+   return true;
+  })().catch(error=>{
+   dtcIndexPromise=null;
+   console.warn("DTC index Firebase gagal dimuatkan; menggunakan fallback:",error);
+   return false;
+  });
+ }
+ return dtcIndexPromise;
+}
+
+async function quickFind(){
  const q=document.getElementById("quickSearch").value.trim().toUpperCase();
+ const result=document.getElementById("quickResult");
+ await ensureDTCIndex();
  const found=dtcs.find(x=>x.c===q);
- document.getElementById("quickResult").innerHTML=found
-  ? `<strong style="color:#22d3ee">${dtcEscape(found.c)}</strong><br>${dtcEscape(found.n)}<br>${dtcEscape(found.m)}`
+ result.innerHTML=found
+  ? `<strong style="color:#22d3ee">${dtcEscape(found.c)}</strong><br>${dtcEscape(found.n)}<br><button type="button" onclick="showDTC('${dtcEscape(found.c)}')">LIHAT BUTIRAN</button>`
   : "Kod belum dijumpai dalam database.";
 }
 
-function renderDTC(){
+async function renderDTC(){
  const input=document.getElementById("dtcSearch");
+ const output=document.getElementById("dtcList");
+ if(!input||!output)return;
+ output.innerHTML="<p>Memuatkan indeks 500 kod DTC daripada Firebase...</p>";
+ await ensureDTCIndex();
  const q=input.value.trim().toUpperCase();
- const list=dtcs.filter(x=>x.c.includes(q)||x.n.toUpperCase().includes(q));
- document.getElementById("dtcList").innerHTML=list.map(x=>
+ const list=dtcs.filter(x=>(x.c||"").toUpperCase().includes(q)||(x.n||"").toUpperCase().includes(q));
+ output.innerHTML=list.map(x=>
   `<div class="item" onclick="showDTC('${dtcEscape(x.c)}')">
    <strong>${dtcEscape(x.c)}</strong>
    <p>${dtcEscape(x.n)}</p>
@@ -1222,6 +1254,7 @@ function renderDTC(){
 }
 
 async function showDTC(code){
+ await ensureDTCIndex();
  const x=dtcs.find(a=>a.c===code);
  if(!x)return;
 
