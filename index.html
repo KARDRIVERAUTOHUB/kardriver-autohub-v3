@@ -1298,11 +1298,28 @@ async function showDTC(code){
   box.scrollIntoView({behavior:"smooth"});
  }catch(error){
   console.error("DTC Firebase Error:",error);
+
+  const free={
+   m:x.m||"Maklumat maksud belum tersedia.",
+   s:x.s||"Maklumat simptom belum tersedia.",
+   p:x.p||"Maklumat kemungkinan punca belum tersedia."
+  };
+
   box.innerHTML=`
-   <h3>Maklumat DTC tidak dapat dimuatkan</h3>
-   <p>${dtcEscape(error.message||"Ralat sambungan. Sila cuba semula.")}</p>
-   <button class="action" onclick="showDTC('${dtcEscape(code)}')">CUBA SEMULA</button>
+   <span class="tag">FREE ACCESS</span>
+   <h2>${dtcEscape(x.c)}</h2>
+   <h3>${dtcEscape(x.n)}</h3>
+   <p><strong>Maksud / Meaning</strong><br>${dtcEscape(free.m)}</p>
+   <p><strong>Simptom / Symptoms</strong><br>${dtcEscape(free.s)}</p>
+   <div><strong>Punca / Possible causes</strong>
+    <p>${dtcEscape(free.p)}</p>
+   </div>
+   <div class="notice">
+    <strong>Maklumat PRO dan MASTERCLASS ELITE tidak tersedia.</strong>
+    <p>Sambungan Firebase gagal. Kandungan berbayar kekal dikunci.</p>
+   </div>
   `;
+  box.scrollIntoView({behavior:"smooth"});
  }
 }
 function renderCourses(){
